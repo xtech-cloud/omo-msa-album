@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const DefaultOwner = "system"
+
 type baseInfo struct {
 	ID         uint64 `json:"-"`
 	UID        string `json:"uid"`
@@ -30,12 +32,28 @@ func InitData() error {
 		//num := nosql.GetAssetCount()
 		//count := nosql.GetThumbCount()
 		//logger.Infof("the asset count = %d and the thumb count = %d", num, count)
+		checkOwner()
 	}
 	return err
 }
 
 func Context() *cacheContext {
 	return cacheCtx
+}
+
+func checkOwner()  {
+	dbs,_ := nosql.GetAllPanoramas()
+	for _, db := range dbs {
+		if db.Owner == "" {
+			_ = nosql.UpdatePanoramaOwner(db.UID.Hex(), DefaultOwner)
+		}
+	}
+	dbs2,_ := nosql.GetAllExhibits()
+	for _, db := range dbs2 {
+		if db.Owner == "" {
+			_ = nosql.UpdateExhibitOwner(db.UID.Hex(), DefaultOwner)
+		}
+	}
 }
 
 func checkPage(page, number uint32, all interface{}) (uint32, uint32, interface{}) {

@@ -55,6 +55,7 @@ func (mine *cacheContext) ClonePhotocopy(uid, user string) (*PhotocopyInfo, erro
 	db.Name = master.Name
 	db.Remark = master.Remark
 	db.Count = 0
+	db.Owner = DefaultOwner
 	db.Mother = master.UID
 	db.Template = master.Template
 	db.Slots = make([]proxy.PhotocopySlot, 0, 1)

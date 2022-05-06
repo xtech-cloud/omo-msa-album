@@ -24,7 +24,7 @@ func (mine *cacheContext) CreatePanorama(name, remark, json, owner, operator str
 	db.Remark = remark
 	db.Content = json
 	if owner == "" {
-		owner = "system"
+		owner = DefaultOwner
 	}
 	db.Owner = owner
 	err := nosql.CreatePanorama(db)
@@ -56,7 +56,7 @@ func (mine *cacheContext) RemovePanorama(uid, operator string) error {
 
 func (mine *cacheContext) GetPanoramas(owner string) ([]*PanoramaInfo, error) {
 	if owner == "" {
-		owner = "system"
+		owner = DefaultOwner
 	}
 	array, err := nosql.GetAllPanoramasByOwner(owner)
 	if err != nil {

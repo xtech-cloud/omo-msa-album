@@ -115,6 +115,12 @@ func UpdateExhibitStatus(uid, operator string, st uint8) error {
 	return err
 }
 
+func UpdateExhibitOwner(uid, owner string) error {
+	msg := bson.M{"owner": owner}
+	_, err := updateOne(TableExhibit, uid, msg)
+	return err
+}
+
 func UpdateExhibitAssets(uid, operator string, list []string) error {
 	msg := bson.M{"assets": list, "operator": operator, "updatedAt": time.Now()}
 	_, err := updateOne(TableExhibit, uid, msg)

@@ -19,6 +19,9 @@ type ExhibitInfo struct {
 }
 
 func (mine *cacheContext) CreateExhibit(name, remark, cover, owner, operator string) (*ExhibitInfo, error) {
+	if owner == "" {
+		owner = DefaultOwner
+	}
 	db := new(nosql.Exhibit)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetExhibitNextID()
@@ -87,7 +90,7 @@ func (mine *cacheContext) GetExhibits(array []string) []*ExhibitInfo {
 
 func (mine *cacheContext) GetAllExhibits(owner string) ([]*ExhibitInfo, error) {
 	if owner == "" {
-		owner = "system"
+		owner = DefaultOwner
 	}
 	array, err := nosql.GetAllExhibitsByOwner(owner)
 	if err != nil {

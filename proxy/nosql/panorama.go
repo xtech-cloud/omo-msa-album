@@ -67,7 +67,7 @@ func GetAllPanoramasByOwner(owner string) ([]*Panorama, error) {
 	return items, nil
 }
 
-func GetAllPanoramas(owner string) ([]*Panorama, error) {
+func GetAllPanoramas() ([]*Panorama, error) {
 	cursor, err1 := findAll(TablePanorama, 0)
 	if err1 != nil {
 		return nil, err1
@@ -93,6 +93,12 @@ func UpdatePanoramaBase(uid, name, remark string) error {
 
 func UpdatePanoramaContent(uid, content string) error {
 	msg := bson.M{"content": content, "updatedAt": time.Now()}
+	_, err := updateOne(TablePanorama, uid, msg)
+	return err
+}
+
+func UpdatePanoramaOwner(uid, owner string) error {
+	msg := bson.M{"owner": owner}
 	_, err := updateOne(TablePanorama, uid, msg)
 	return err
 }
