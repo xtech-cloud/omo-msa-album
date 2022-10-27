@@ -582,6 +582,8 @@ github.com/xtech-cloud/omo-msp-album v1.0.0 h1:AUbWDR/esyMqH0tTlXwz+xVRkswFEjtDH
 github.com/xtech-cloud/omo-msp-album v1.0.0/go.mod h1:KgHRdnIGEDPvfCGIrtDSkIvUiLKBN9EN+OIZ44wXKeM=
 github.com/xtech-cloud/omo-msp-album v1.0.1 h1:Wz5/n3+yekDhoCkgSwyfRUm3acWuWM+VmKW2CLY0d4g=
 github.com/xtech-cloud/omo-msp-album v1.0.1/go.mod h1:KgHRdnIGEDPvfCGIrtDSkIvUiLKBN9EN+OIZ44wXKeM=
+github.com/xtech-cloud/omo-msp-album v1.0.2 h1:fikcb104mAQ6n241GZE1De0fX85x49T84s24+N7icMs=
+github.com/xtech-cloud/omo-msp-album v1.0.2/go.mod h1:KgHRdnIGEDPvfCGIrtDSkIvUiLKBN9EN+OIZ44wXKeM=
 github.com/xtech-cloud/omo-msp-asset v1.0.0 h1:c7q1slePWOoFXh0miYBnUpNNROpZl+OSuc1uHTkVh80=
 github.com/xtech-cloud/omo-msp-asset v1.0.0/go.mod h1:wne1agQVB5puwsQvV6WR31UC96c1/pyxXBjY68ta8kU=
 github.com/xtech-cloud/omo-msp-asset v1.0.1 h1:FJGyrCQXIAkzh/2TcbYOV9LTtxe6zuUCodqHDzrgfJw=

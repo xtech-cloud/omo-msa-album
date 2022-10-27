@@ -46,6 +46,7 @@ func main() {
 	_ = proto.RegisterPanoramaServiceHandler(service.Server(), new(grpc.PanoramaService))
 	_ = proto.RegisterPhotocopyServiceHandler(service.Server(), new(grpc.PhotocopyService))
 	_ = proto.RegisterStyleServiceHandler(service.Server(), new(grpc.StyleService))
+	_ = proto.RegisterFrameServiceHandler(service.Server(), new(grpc.FrameService))
 
 	app, _ := filepath.Abs(os.Args[0])
 

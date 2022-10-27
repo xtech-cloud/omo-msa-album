@@ -37,11 +37,7 @@ func (mine *CollectiveService) AddOne(ctx context.Context, in *pb.ReqCollectiveA
 		return nil
 	}
 
-	tmp, er := cache.Context().GetCollAlbumByName(in.Owner, in.Name)
-	if er != nil {
-		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_Repeated)
-		return nil
-	}
+	tmp, _ := cache.Context().GetCollAlbumByName(in.Owner, in.Name)
 	if tmp != nil {
 		out.Status = outError(path, "the name is repeated", pbstatus.ResultStatus_Repeated)
 		return nil

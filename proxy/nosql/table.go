@@ -12,4 +12,5 @@ const (
 	TablePhotocopy  = "album_photocopies"
 	TablePhotoStyle = "album_styles"
 	TableExhibit    = "exhibitions"
+	TablePhotoFrame = "album_frames"
 )
