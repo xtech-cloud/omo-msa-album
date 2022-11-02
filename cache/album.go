@@ -308,7 +308,7 @@ func (mine *AlbumInfo) AppendAssets(assets []string, operator string) error {
 
 func (mine *AlbumInfo) UpdateAssets(assets []string, operator string) error {
 	if assets == nil {
-		return nil
+		assets = make([]string, 0, 1)
 	}
 	err := nosql.UpdateAlbumAssets(mine.UID, operator, assets)
 	if err == nil {
