@@ -13,6 +13,9 @@ type Panorama struct {
 	CreatedTime time.Time          `json:"createdAt" bson:"createdAt"`
 	UpdatedTime time.Time          `json:"updatedAt" bson:"updatedAt"`
 	DeleteTime  time.Time          `json:"deleteAt" bson:"deleteAt"`
+	Created     int64              `json:"created" bson:"created"`
+	Updated     int64              `json:"updated" bson:"updated"`
+	Deleted     int64              `json:"deleted" bson:"deleted"`
 	Creator     string             `json:"creator" bson:"creator"`
 	Operator    string             `json:"operator" bson:"operator"`
 
@@ -49,7 +52,7 @@ func GetPanorama(uid string) (*Panorama, error) {
 }
 
 func GetAllPanoramasByOwner(owner string) ([]*Panorama, error) {
-	msg := bson.M{"owner": owner, "deleteAt": new(time.Time)}
+	msg := bson.M{"owner": owner, TimeDeleted: 0}
 	cursor, err1 := findMany(TablePanorama, msg, 0)
 	if err1 != nil {
 		return nil, err1
@@ -68,7 +71,7 @@ func GetAllPanoramasByOwner(owner string) ([]*Panorama, error) {
 }
 
 func GetAllPanoramas() ([]*Panorama, error) {
-	cursor, err1 := findAll(TablePanorama, 0)
+	cursor, err1 := findAllEnable(TablePanorama, 0)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -86,13 +89,13 @@ func GetAllPanoramas() ([]*Panorama, error) {
 }
 
 func UpdatePanoramaBase(uid, name, remark string) error {
-	msg := bson.M{"name": name, "remark": remark, "updatedAt": time.Now()}
+	msg := bson.M{"name": name, "remark": remark, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TablePanorama, uid, msg)
 	return err
 }
 
 func UpdatePanoramaContent(uid, content string) error {
-	msg := bson.M{"content": content, "updatedAt": time.Now()}
+	msg := bson.M{"content": content, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TablePanorama, uid, msg)
 	return err
 }

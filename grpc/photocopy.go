@@ -16,8 +16,8 @@ func switchPhotocopy(info *cache.PhotocopyInfo) *pb.PhotocopyInfo {
 	tmp := new(pb.PhotocopyInfo)
 	tmp.Uid = info.UID
 	tmp.Id = info.ID
-	tmp.Created = info.CreateTime.Unix()
-	tmp.Updated = info.UpdateTime.Unix()
+	tmp.Created = info.Created
+	tmp.Updated = info.Updated
 	tmp.Operator = info.Operator
 	tmp.Creator = info.Creator
 	tmp.Name = info.Name
@@ -75,7 +75,7 @@ func (mine *PhotocopyService) GetOne(ctx context.Context, in *pb.RequestInfo, ou
 	var er error
 	if in.Flag == "" {
 		info, er = cache.Context().GetPhotocopy(in.Uid)
-	}else if in.Flag == "clone" {
+	} else if in.Flag == "clone" {
 		info, er = cache.Context().ClonePhotocopy(in.Uid, in.User)
 	}
 

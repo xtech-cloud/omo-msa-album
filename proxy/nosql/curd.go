@@ -12,6 +12,66 @@ import (
 
 const timeOut = 10 * time.Second
 
+const (
+	TimeCreated = "created"
+	TimeUpdated = "updated"
+	TimeDeleted = "deleted"
+)
+
+func UpdateItemTime(table, uid string, created, updated, del time.Time) {
+	d := del.Unix()
+	if d < 0 {
+		d = 0
+	}
+	u := updated.Unix()
+	if u < 0 {
+		u = 0
+	}
+	msg := bson.M{TimeCreated: created.Unix(), TimeUpdated: u, TimeDeleted: d}
+	_, _ = updateOne(table, uid, msg)
+}
+
+func GetAll[T any](table string, items []*T) []*T {
+	cursor, err1 := findAll(table, 0)
+	if err1 != nil {
+		return make([]*T, 0, 1)
+	}
+	defer cursor.Close(context.Background())
+	for cursor.Next(context.Background()) {
+		var node = new(T)
+		if err := cursor.Decode(node); err != nil {
+			return make([]*T, 0, 1)
+		} else {
+			items = append(items, node)
+		}
+	}
+	return items
+}
+
+func findAll(collection string, limit int64) (*mongo.Cursor, error) {
+	if len(collection) < 1 {
+		return nil, errors.New("the collection is empty")
+	}
+	c := noSql.Collection(collection)
+	if c == nil {
+		return nil, errors.New("can not found the collection of" + collection)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
+	defer cancel()
+	filter := bson.M{}
+	var cursor *mongo.Cursor
+	var err error
+	if limit > 0 {
+		cursor, err = c.Find(ctx, filter, options.Find().SetSort(bson.M{TimeCreated: -1}).SetLimit(limit))
+	} else {
+		cursor, err = c.Find(ctx, filter)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return cursor, nil
+}
+
 func insertOne(collection string, info interface{}) (interface{}, error) {
 	if len(collection) < 1 {
 		return "", errors.New("the collection is empty")
@@ -89,7 +149,7 @@ func removeOne(collection, uid, operator string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 	defer cancel()
 	filter := bson.M{"_id": objID}
-	node := bson.M{"$set": bson.M{"operator": operator, "deleteAt": time.Now()}}
+	node := bson.M{"$set": bson.M{"operator": operator, TimeDeleted: time.Now().Unix()}}
 	result, err := c.UpdateOne(ctx, filter, node)
 	if err != nil {
 		return 0, err
@@ -161,7 +221,7 @@ func appendElement(collection, uid string, data bson.M) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 	defer cancel()
 	filter := bson.M{"_id": objID}
-	node := bson.M{"$push": data, "$set": bson.M{"updatedAt": time.Now()}}
+	node := bson.M{"$push": data, "$set": bson.M{TimeUpdated: time.Now().Unix()}}
 	result, err := c.UpdateOne(ctx, filter, node)
 	if err != nil {
 		return 0, err
@@ -190,7 +250,7 @@ func removeElement(collection, uid string, data bson.M) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 	defer cancel()
 	filter := bson.M{"_id": objID}
-	node := bson.M{"$pull": data, "$set": bson.M{"updatedAt": time.Now()}}
+	node := bson.M{"$pull": data, "$set": bson.M{TimeUpdated: time.Now().Unix()}}
 	result, err := c.UpdateOne(ctx, filter, node)
 	if err != nil {
 		return 0, err
@@ -312,7 +372,7 @@ func findMany(collection string, filter bson.M, limit int64) (*mongo.Cursor, err
 	var cursor *mongo.Cursor
 	var err error
 	if limit > 0 {
-		cursor, err = c.Find(ctx, filter, options.Find().SetSort(bson.M{"createdAt": -1}).SetLimit(limit))
+		cursor, err = c.Find(ctx, filter, options.Find().SetSort(bson.M{TimeCreated: -1}).SetLimit(limit))
 	} else {
 		cursor, err = c.Find(ctx, filter)
 	}
@@ -362,8 +422,7 @@ func findAllByOpts(collection string, opts *options.FindOptions) (*mongo.Cursor,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 	defer cancel()
-	def := new(time.Time)
-	filter := bson.M{"deleteAt": def}
+	filter := bson.M{TimeDeleted: 0}
 	cursor, err := c.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
@@ -371,7 +430,7 @@ func findAllByOpts(collection string, opts *options.FindOptions) (*mongo.Cursor,
 	return cursor, nil
 }
 
-func findAll(collection string, limit int64) (*mongo.Cursor, error) {
+func findAllEnable(collection string, limit int64) (*mongo.Cursor, error) {
 	if len(collection) < 1 {
 		return nil, errors.New("the collection is empty")
 	}
@@ -381,12 +440,11 @@ func findAll(collection string, limit int64) (*mongo.Cursor, error) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 	defer cancel()
-	def := new(time.Time)
-	filter := bson.M{"deleteAt": def}
+	filter := bson.M{TimeDeleted: 0}
 	var cursor *mongo.Cursor
 	var err error
 	if limit > 0 {
-		cursor, err = c.Find(ctx, filter, options.Find().SetSort(bson.M{"createdAt": -1}).SetLimit(limit))
+		cursor, err = c.Find(ctx, filter, options.Find().SetSort(bson.M{TimeCreated: -1}).SetLimit(limit))
 	} else {
 		cursor, err = c.Find(ctx, filter)
 	}

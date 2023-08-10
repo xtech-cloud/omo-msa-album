@@ -32,7 +32,7 @@ func (mine *cacheContext) CreatePhotoTemplate(name, remark, user string, kind ui
 	db := new(nosql.PhotoStyle)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetAlbumNextID()
-	db.CreatedTime = time.Now()
+	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark
@@ -77,8 +77,8 @@ func (mine *cacheContext) GetPhotoStyles(page, number uint32) (uint32, uint32, [
 	if number < 1 {
 		number = 10
 	}
-	total, maxPage, set := checkPage(page, number, list)
-	return total, maxPage, set.([]*PhotoStyleInfo)
+	total, maxPage, set := CheckPage(page, number, list)
+	return total, maxPage, set
 }
 
 func (mine *PhotoStyleInfo) initInfo(db *nosql.PhotoStyle) {
@@ -86,7 +86,8 @@ func (mine *PhotoStyleInfo) initInfo(db *nosql.PhotoStyle) {
 	mine.UID = db.UID.Hex()
 	mine.ID = db.ID
 	mine.Remark = db.Remark
-	mine.CreateTime = db.CreatedTime
+	mine.Created = db.Created
+	mine.Operator = db.Operator
 	mine.Creator = db.Creator
 	mine.Size = db.Size
 	mine.Cover = db.Cover

@@ -13,6 +13,9 @@ type Exhibit struct {
 	CreatedTime time.Time          `json:"createdAt" bson:"createdAt"`
 	UpdatedTime time.Time          `json:"updatedAt" bson:"updatedAt"`
 	DeleteTime  time.Time          `json:"deleteAt" bson:"deleteAt"`
+	Created     int64              `json:"created" bson:"created"`
+	Updated     int64              `json:"updated" bson:"updated"`
+	Deleted     int64              `json:"deleted" bson:"deleted"`
 	Creator     string             `json:"creator" bson:"creator"`
 	Operator    string             `json:"operator" bson:"operator"`
 
@@ -53,7 +56,7 @@ func GetExhibit(uid string) (*Exhibit, error) {
 }
 
 func GetExhibitByName(name string) (*Exhibit, error) {
-	filter := bson.M{"name": name, "deleteAt": new(time.Time)}
+	filter := bson.M{"name": name, TimeDeleted: 0}
 	result, err := findOneBy(TableExhibit, filter)
 	if err != nil {
 		return nil, err
@@ -67,7 +70,7 @@ func GetExhibitByName(name string) (*Exhibit, error) {
 }
 
 func GetAllExhibitsByOwner(owner string) ([]*Exhibit, error) {
-	msg := bson.M{"owner": owner, "deleteAt": new(time.Time)}
+	msg := bson.M{"owner": owner, TimeDeleted: 0}
 	cursor, err1 := findMany(TableExhibit, msg, 0)
 	if err1 != nil {
 		return nil, err1
@@ -86,7 +89,7 @@ func GetAllExhibitsByOwner(owner string) ([]*Exhibit, error) {
 }
 
 func GetAllExhibits() ([]*Exhibit, error) {
-	cursor, err1 := findAll(TableExhibit, 0)
+	cursor, err1 := findAllEnable(TableExhibit, 0)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -104,13 +107,13 @@ func GetAllExhibits() ([]*Exhibit, error) {
 }
 
 func UpdateExhibitBase(uid, name, remark, cover, operator string) error {
-	msg := bson.M{"name": name, "remark": remark, "cover": cover, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"name": name, "remark": remark, "cover": cover, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableExhibit, uid, msg)
 	return err
 }
 
 func UpdateExhibitStatus(uid, operator string, st uint8) error {
-	msg := bson.M{"status": st, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"status": st, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableExhibit, uid, msg)
 	return err
 }
@@ -122,7 +125,7 @@ func UpdateExhibitOwner(uid, owner string) error {
 }
 
 func UpdateExhibitAssets(uid, operator string, list []string) error {
-	msg := bson.M{"assets": list, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"assets": list, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableExhibit, uid, msg)
 	return err
 }

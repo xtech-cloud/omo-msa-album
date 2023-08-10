@@ -14,6 +14,9 @@ type PhotoStyle struct {
 	CreatedTime time.Time          `json:"createdAt" bson:"createdAt"`
 	UpdatedTime time.Time          `json:"updatedAt" bson:"updatedAt"`
 	DeleteTime  time.Time          `json:"deleteAt" bson:"deleteAt"`
+	Created     int64              `json:"created" bson:"created"`
+	Updated     int64              `json:"updated" bson:"updated"`
+	Deleted     int64              `json:"deleted" bson:"deleted"`
 	Creator     string             `json:"creator" bson:"creator"`
 	Operator    string             `json:"operator" bson:"operator"`
 
@@ -55,7 +58,7 @@ func GetPhotoStyle(uid string) (*PhotoStyle, error) {
 }
 
 func GetAllPhotoStyles() ([]*PhotoStyle, error) {
-	cursor, err1 := findAll(TablePhotoStyle, 0)
+	cursor, err1 := findAllEnable(TablePhotoStyle, 0)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -73,19 +76,19 @@ func GetAllPhotoStyles() ([]*PhotoStyle, error) {
 }
 
 func UpdatePhotoStyleBase(uid, name, remark, operator string, tp uint8) error {
-	msg := bson.M{"name": name, "remark": remark, "type": tp, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"name": name, "remark": remark, "type": tp, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TablePhotoStyle, uid, msg)
 	return err
 }
 
 func UpdatePhotoStyleCover(uid, cover, operator string) error {
-	msg := bson.M{"cover": cover, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"cover": cover, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TablePhotoStyle, uid, msg)
 	return err
 }
 
 func UpdatePhotoStylePrice(uid, operator string, price uint32) error {
-	msg := bson.M{"price": price, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"price": price, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TablePhotoStyle, uid, msg)
 	return err
 }

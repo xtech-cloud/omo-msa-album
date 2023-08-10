@@ -13,6 +13,9 @@ type Collective struct {
 	CreatedTime time.Time          `json:"createdAt" bson:"createdAt"`
 	UpdatedTime time.Time          `json:"updatedAt" bson:"updatedAt"`
 	DeleteTime  time.Time          `json:"deleteAt" bson:"deleteAt"`
+	Created     int64              `json:"created" bson:"created"`
+	Updated     int64              `json:"updated" bson:"updated"`
+	Deleted     int64              `json:"deleted" bson:"deleted"`
 	Creator     string             `json:"creator" bson:"creator"`
 	Operator    string             `json:"operator" bson:"operator"`
 
@@ -20,6 +23,7 @@ type Collective struct {
 	Name     string   `json:"name" bson:"name"`
 	Remark   string   `json:"remark" bson:"remark"`
 	MaxCount uint16   `json:"max" bson:"max"`
+	Type     uint8    `json:"type" bson:"type"`
 	Group    string   `json:"group" bson:"group"`
 	Size     uint64   `json:"size" bson:"size"`
 	Cover    string   `json:"cover" bson:"cover"`
@@ -54,7 +58,7 @@ func GetCollective(uid string) (*Collective, error) {
 }
 
 func GetCollectiveByName(owner, name string) (*Collective, error) {
-	msg := bson.M{"group": owner, "name": name, "deleteAt": new(time.Time)}
+	msg := bson.M{"group": owner, "name": name, TimeDeleted: 0}
 	result, err := findOneBy(TableCollective, msg)
 	if err != nil {
 		return nil, err
@@ -68,7 +72,7 @@ func GetCollectiveByName(owner, name string) (*Collective, error) {
 }
 
 func GetCollectivesByCreator(user string) ([]*Collective, error) {
-	msg := bson.M{"creator": user, "deleteAt": new(time.Time)}
+	msg := bson.M{"creator": user, TimeDeleted: 0}
 	cursor, err1 := findMany(TableCollective, msg, 0)
 	if err1 != nil {
 		return nil, err1
@@ -87,7 +91,7 @@ func GetCollectivesByCreator(user string) ([]*Collective, error) {
 }
 
 func GetCollectivesByGroup(group string) ([]*Collective, error) {
-	msg := bson.M{"group": group, "deleteAt": new(time.Time)}
+	msg := bson.M{"group": group, TimeDeleted: 0}
 	cursor, err1 := findMany(TableCollective, msg, 0)
 	if err1 != nil {
 		return nil, err1
@@ -106,7 +110,7 @@ func GetCollectivesByGroup(group string) ([]*Collective, error) {
 }
 
 func GetAllCollectives() ([]*Collective, error) {
-	cursor, err1 := findAll(TableCollective, 0)
+	cursor, err1 := findAllEnable(TableCollective, 0)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -124,19 +128,19 @@ func GetAllCollectives() ([]*Collective, error) {
 }
 
 func UpdateCollectiveBase(uid, name, remark, operator string) error {
-	msg := bson.M{"name": name, "remark": remark, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"name": name, "remark": remark, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCollective, uid, msg)
 	return err
 }
 
 func UpdateCollectiveCover(uid, cover, operator string) error {
-	msg := bson.M{"cover": cover, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"cover": cover, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCollective, uid, msg)
 	return err
 }
 
 func UpdateCollectiveStatus(uid, operator string, st uint8) error {
-	msg := bson.M{"status": st, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"status": st, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCollective, uid, msg)
 	return err
 }
@@ -147,7 +151,7 @@ func RemoveCollective(uid, operator string) error {
 }
 
 func UpdateCollectiveAssets(uid, operator string, assets []string) error {
-	msg := bson.M{"assets": assets, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"assets": assets, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCollective, uid, msg)
 	return err
 }

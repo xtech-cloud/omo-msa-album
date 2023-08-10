@@ -15,8 +15,8 @@ func switchExhibit(info *cache.ExhibitInfo) *pb.ExhibitInfo {
 	tmp := new(pb.ExhibitInfo)
 	tmp.Uid = info.UID
 	tmp.Id = info.ID
-	tmp.Created = info.CreateTime.Unix()
-	tmp.Updated = info.UpdateTime.Unix()
+	tmp.Created = info.Created
+	tmp.Updated = info.Updated
 	tmp.Operator = info.Operator
 	tmp.Creator = info.Creator
 	tmp.Name = info.Name
@@ -39,7 +39,7 @@ func (mine *ExhibitService) AddOne(ctx context.Context, in *pb.ReqExhibitAdd, ou
 	}
 
 	if cache.Context().HadExhibitByName(in.Name) {
-		out.Status = outError(path,"the name is repeated", pbstatus.ResultStatus_Repeated)
+		out.Status = outError(path, "the name is repeated", pbstatus.ResultStatus_Repeated)
 		return nil
 	}
 
@@ -145,8 +145,8 @@ func (mine *ExhibitService) UpdateBase(ctx context.Context, in *pb.ReqExhibitUpd
 		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
 	}
-	if in.Name != info.Name && cache.Context().HadExhibitByName(in.Name){
-		out.Status = outError(path,"the name is repeated", pbstatus.ResultStatus_Repeated)
+	if in.Name != info.Name && cache.Context().HadExhibitByName(in.Name) {
+		out.Status = outError(path, "the name is repeated", pbstatus.ResultStatus_Repeated)
 		return nil
 	}
 	var err error

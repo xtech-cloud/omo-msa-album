@@ -74,6 +74,39 @@ func InitDB(ip string, port string, db string, kind string) error {
 	}
 }
 
+func CheckTimes() {
+	dbs := make([]*Album, 0, 100)
+	dbs = GetAll(TableAlbum, dbs)
+	for _, db := range dbs {
+		UpdateItemTime(TableAlbum, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+	}
+	dbs1 := make([]*Collective, 0, 100)
+	dbs1 = GetAll(TableCollective, dbs1)
+	for _, db := range dbs1 {
+		UpdateItemTime(TableCollective, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+	}
+	dbs3 := make([]*Exhibit, 0, 100)
+	dbs3 = GetAll(TableExhibit, dbs3)
+	for _, db := range dbs3 {
+		UpdateItemTime(TableExhibit, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+	}
+	dbs2 := make([]*PhotoFrame, 0, 100)
+	dbs2 = GetAll(TablePhotoFrame, dbs2)
+	for _, db := range dbs2 {
+		UpdateItemTime(TablePhotoFrame, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+	}
+	dbs4 := make([]*Panorama, 0, 100)
+	dbs4 = GetAll(TablePanorama, dbs4)
+	for _, db := range dbs4 {
+		UpdateItemTime(TablePanorama, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+	}
+	dbs5 := make([]*Photocopy, 0, 100)
+	dbs5 = GetAll(TablePhotocopy, dbs5)
+	for _, db := range dbs5 {
+		UpdateItemTime(TablePhotocopy, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+	}
+}
+
 func tableExist(collection string) bool {
 	c := noSql.Collection(collection)
 	if c == nil {
@@ -127,39 +160,6 @@ func readFile(path string, table string) error {
 	data := result.Array()
 
 	return analyticDataStructure(table, data)
-}
-
-func BackupDatabase() string {
-	/*timeStr := time.Now().Format("20060102150405")
-	path := "db/"+timeStr+"/"
-	bl := tool.FileIsExist(path)
-	if !bl {
-		err := os.MkdirAll(path, 0666)
-		if err != nil {
-			warn("backup database failed!!!")
-		}
-	}
-
-	tables, _ := noSql.ListCollectionNames(context.Background(), nil)
-	for i := 0; i < len(tables); i++ {
-		if tables[i] == TableAdmin {
-			//cursor,_ := findAll(TableAdmin)
-			//writeFile(path,tables[i],cursor.)
-		}else if tables[i] == TableScene {
-
-			//writeFile(path,tables[i],list)
-		}
-	}
-	return timeStr*/
-	return ""
-}
-
-func RecoveryDatabase(timeStr string) error {
-	//path := "db/" + timeStr + "/"
-	//
-	//tables, _ := noSql.ListCollectionNames(context.Background(), nil)
-
-	return nil
 }
 
 func ImportDatabase(table string, file multipart.File) error {

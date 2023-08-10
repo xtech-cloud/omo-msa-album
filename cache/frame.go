@@ -11,9 +11,9 @@ import (
 type PhotoFrameInfo struct {
 	baseInfo
 	Remark string
-	Asset string
-	Owner string
-	Width uint32
+	Asset  string
+	Owner  string
+	Width  uint32
 	Height uint32
 }
 
@@ -21,7 +21,7 @@ func (mine *cacheContext) CreatePhotoFrame(name, remark, asset, owner, user stri
 	db := new(nosql.PhotoFrame)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetAlbumNextID()
-	db.CreatedTime = time.Now()
+	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark
@@ -71,8 +71,10 @@ func (mine *PhotoFrameInfo) initInfo(db *nosql.PhotoFrame) {
 	mine.UID = db.UID.Hex()
 	mine.ID = db.ID
 	mine.Remark = db.Remark
-	mine.CreateTime = db.CreatedTime
+	mine.Created = db.Created
+	mine.Updated = db.Updated
 	mine.Creator = db.Creator
+	mine.Operator = db.Operator
 	mine.Width = db.Width
 	mine.Height = db.Height
 	mine.Asset = db.Asset

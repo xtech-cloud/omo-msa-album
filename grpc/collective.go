@@ -15,14 +15,15 @@ func switchCollective(info *cache.CollAlbumInfo) *pb.CollectiveInfo {
 	tmp := new(pb.CollectiveInfo)
 	tmp.Uid = info.UID
 	tmp.Id = info.ID
-	tmp.Created = info.CreateTime.Unix()
-	tmp.Updated = info.UpdateTime.Unix()
+	tmp.Created = info.Created
+	tmp.Updated = info.Updated
 	tmp.Operator = info.Operator
 	tmp.Creator = info.Creator
 	tmp.Name = info.Name
 	tmp.Remark = info.Remark
 	tmp.Cover = info.Cover
 	tmp.Status = uint32(info.Status)
+	tmp.Type = uint32(info.Type)
 	tmp.Owner = info.Owner
 	tmp.Tags = info.Tags
 	tmp.Assets = info.Assets
@@ -42,7 +43,7 @@ func (mine *CollectiveService) AddOne(ctx context.Context, in *pb.ReqCollectiveA
 		out.Status = outError(path, "the name is repeated", pbstatus.ResultStatus_Repeated)
 		return nil
 	}
-	info, err := cache.Context().CreateCollAlbum(in.Name, in.Remark, in.Operator, in.Owner)
+	info, err := cache.Context().CreateCollAlbum(in.Name, in.Remark, in.Operator, in.Owner, uint8(in.Type))
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
@@ -187,7 +188,7 @@ func (mine *CollectiveService) UpdateByFilter(ctx context.Context, in *pb.Reques
 		err = info.UpdateSize(uint64(size))
 	} else if in.Field == "assets" {
 		err = info.UpdateAssets(in.Values, in.Operator)
-	} else{
+	} else {
 		err = errors.New("the field not defined")
 	}
 	if err != nil {

@@ -15,8 +15,8 @@ func switchFrame(info *cache.PhotoFrameInfo) *pb.FrameInfo {
 	tmp := new(pb.FrameInfo)
 	tmp.Uid = info.UID
 	tmp.Id = info.ID
-	tmp.Created = info.CreateTime.Unix()
-	tmp.Updated = info.UpdateTime.Unix()
+	tmp.Created = info.Created
+	tmp.Updated = info.Updated
 	tmp.Operator = info.Operator
 	tmp.Creator = info.Creator
 	tmp.Name = info.Name

@@ -24,7 +24,7 @@ func (mine *cacheContext) CreatePhotocopy(name, remark, user, template, owner st
 	db := new(nosql.Photocopy)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetAlbumNextID()
-	db.CreatedTime = time.Now()
+	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark
@@ -129,7 +129,8 @@ func (mine *PhotocopyInfo) initInfo(db *nosql.Photocopy) {
 	mine.UID = db.UID.Hex()
 	mine.ID = db.ID
 	mine.Remark = db.Remark
-	mine.CreateTime = db.CreatedTime
+	mine.Created = db.Created
+	mine.Updated = db.Updated
 	mine.Creator = db.Creator
 	mine.Template = db.Template
 	mine.Count = db.Count

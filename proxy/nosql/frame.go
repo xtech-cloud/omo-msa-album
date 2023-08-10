@@ -13,18 +13,21 @@ type PhotoFrame struct {
 	CreatedTime time.Time          `json:"createdAt" bson:"createdAt"`
 	UpdatedTime time.Time          `json:"updatedAt" bson:"updatedAt"`
 	DeleteTime  time.Time          `json:"deleteAt" bson:"deleteAt"`
+	Created     int64              `json:"created" bson:"created"`
+	Updated     int64              `json:"updated" bson:"updated"`
+	Deleted     int64              `json:"deleted" bson:"deleted"`
 	Creator     string             `json:"creator" bson:"creator"`
 	Operator    string             `json:"operator" bson:"operator"`
 
 	Name   string `json:"name" bson:"name"`
 	Remark string `json:"remark" bson:"remark"`
-	Owner string `json:"owner" bson:"owner"`
+	Owner  string `json:"owner" bson:"owner"`
 	// 类型：个人或者组织集体
 	Type  uint8  `json:"type" bson:"type"`
 	Asset string `json:"asset" bson:"asset"`
 	//纸张的大小
-	Width  uint32                 `json:"width" bson:"width"`
-	Height uint32                `json:"height" bson:"height"`
+	Width  uint32 `json:"width" bson:"width"`
+	Height uint32 `json:"height" bson:"height"`
 }
 
 func CreatePhotoFrame(info *PhotoFrame) error {
@@ -54,7 +57,7 @@ func GetPhotoFrame(uid string) (*PhotoFrame, error) {
 }
 
 func GetPhotoFramesByOwner(owner string) ([]*PhotoFrame, error) {
-	msg := bson.M{"owner": owner, "deleteAt": new(time.Time)}
+	msg := bson.M{"owner": owner, TimeDeleted: 0}
 	cursor, err1 := findMany(TablePhotoFrame, msg, 0)
 	if err1 != nil {
 		return nil, err1
@@ -73,13 +76,13 @@ func GetPhotoFramesByOwner(owner string) ([]*PhotoFrame, error) {
 }
 
 func UpdatePhotoFrameBase(uid, name, remark, operator string) error {
-	msg := bson.M{"name": name, "remark": remark, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"name": name, "remark": remark, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TablePhotoFrame, uid, msg)
 	return err
 }
 
 func UpdatePhotoFrameCover(uid, asset, operator string, width, height uint32) error {
-	msg := bson.M{"asset": asset, "width":width, "height":height, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"asset": asset, "width": width, "height": height, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TablePhotoFrame, uid, msg)
 	return err
 }

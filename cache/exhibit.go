@@ -25,7 +25,7 @@ func (mine *cacheContext) CreateExhibit(name, remark, cover, owner, operator str
 	db := new(nosql.Exhibit)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetExhibitNextID()
-	db.CreatedTime = time.Now()
+	db.Created = time.Now().Unix()
 	db.Creator = operator
 	db.Name = name
 	db.Remark = remark
@@ -108,10 +108,10 @@ func (mine *cacheContext) GetAllExhibits(owner string) ([]*ExhibitInfo, error) {
 func (mine *ExhibitInfo) initInfo(db *nosql.Exhibit) {
 	mine.UID = db.UID.Hex()
 	mine.Name = db.Name
-	mine.CreateTime = db.CreatedTime
+	mine.Created = db.Created
 	mine.Remark = db.Remark
 	mine.Cover = db.Cover
-	mine.UpdateTime = db.UpdatedTime
+	mine.Updated = db.Updated
 	mine.Creator = db.Creator
 	mine.Operator = db.Operator
 	mine.Type = db.Type
@@ -128,7 +128,7 @@ func (mine *ExhibitInfo) UpdateBase(name, remark, cover, operator string) error 
 		mine.Remark = remark
 		mine.Cover = cover
 		mine.Operator = operator
-		mine.UpdateTime = time.Now()
+		mine.Updated = time.Now().Unix()
 	}
 	return err
 }
@@ -159,7 +159,7 @@ func (mine *ExhibitInfo) UpdateAssets(assets []string, operator string) error {
 	if err == nil {
 		mine.Assets = assets
 		mine.Operator = operator
-		mine.UpdateTime = time.Now()
+		mine.Updated = time.Now().Unix()
 	}
 	return err
 }
@@ -194,7 +194,7 @@ func (mine *ExhibitInfo) SubtractAsset(asset, operator string) error {
 	if err == nil {
 		mine.Assets = array
 		mine.Operator = operator
-		mine.UpdateTime = time.Now()
+		mine.Updated = time.Now().Unix()
 	}
 	return err
 }

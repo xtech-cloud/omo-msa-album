@@ -11,6 +11,7 @@ import (
 
 type CollAlbumInfo struct {
 	Status uint8
+	Type   uint8
 	baseInfo
 	Remark string
 	Cover  string
@@ -23,16 +24,17 @@ type CollAlbumInfo struct {
 	Assets []string
 }
 
-func (mine *cacheContext) CreateCollAlbum(name, remark, user, group string) (*CollAlbumInfo, error) {
+func (mine *cacheContext) CreateCollAlbum(name, remark, user, group string, tp uint8) (*CollAlbumInfo, error) {
 	db := new(nosql.Collective)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetCollectiveNextID()
-	db.CreatedTime = time.Now()
+	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark
 	db.Cover = ""
 	db.Size = 0
+	db.Type = tp
 	db.Group = group
 	db.MaxCount = config.Schema.Album.Group.MaxCount
 	db.Assets = make([]string, 0, 1)
@@ -141,8 +143,8 @@ func (mine *CollAlbumInfo) initInfo(db *nosql.Collective) {
 	mine.UID = db.UID.Hex()
 	mine.ID = db.ID
 	mine.Remark = db.Remark
-	mine.CreateTime = db.CreatedTime
-	mine.UpdateTime = db.UpdatedTime
+	mine.Created = db.Created
+	mine.Updated = db.Updated
 	mine.Creator = db.Creator
 	mine.Cover = db.Cover
 	mine.Limit = db.MaxCount
@@ -150,6 +152,7 @@ func (mine *CollAlbumInfo) initInfo(db *nosql.Collective) {
 	mine.Owner = db.Group
 	mine.Status = db.Status
 	mine.Tags = db.Tags
+	mine.Type = db.Type
 
 	mine.Assets = db.Assets
 	if mine.Assets == nil {

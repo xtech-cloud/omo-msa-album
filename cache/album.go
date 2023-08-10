@@ -46,7 +46,7 @@ func (mine *cacheContext) CreateAlbum(name, remark, user, loc string, kind uint8
 	db := new(nosql.Album)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetAlbumNextID()
-	db.CreatedTime = time.Now()
+	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark
@@ -167,8 +167,10 @@ func (mine *AlbumInfo) initInfo(db *nosql.Album) {
 	mine.Remark = db.Remark
 	mine.Kind = AlbumType(db.Kind)
 	mine.Status = AlbumStatus(db.Status)
-	mine.CreateTime = db.CreatedTime
+	mine.Created = db.Created
+	mine.Updated = db.Updated
 	mine.Creator = db.Creator
+	mine.Operator = db.Operator
 	mine.Cover = db.Cover
 	mine.Style = db.Style
 	mine.Size = db.Size

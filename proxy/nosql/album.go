@@ -12,8 +12,11 @@ type Album struct {
 	UID         primitive.ObjectID `bson:"_id"`
 	ID          uint64             `json:"id" bson:"id"`
 	CreatedTime time.Time          `json:"createdAt" bson:"createdAt"`
-	UpdatedTime time.Time          `json:"updatedAt" bson:"updatedAt"`
-	DeleteTime  time.Time          `json:"deleteAt" bson:"deleteAt"`
+	UpdatedTime time.Time          `json:"TimeCreatedAt" bson:"TimeCreatedAt"`
+	DeleteTime  time.Time          `json:"deletedAt" bson:"deletedAt"`
+	Created     int64              `json:"created" bson:"created"`
+	Updated     int64              `json:"updated" bson:"updated"`
+	Deleted     int64              `json:"deleted" bson:"deleted"`
 	Creator     string             `json:"creator" bson:"creator"`
 	Operator    string             `json:"operator" bson:"operator"`
 
@@ -61,7 +64,7 @@ func GetAlbum(uid string) (*Album, error) {
 }
 
 func GetAlbumsByCreator(user string) ([]*Album, error) {
-	msg := bson.M{"creator": user, "deleteAt": new(time.Time)}
+	msg := bson.M{"creator": user, TimeDeleted: 0}
 	cursor, err1 := findMany(TableAlbum, msg, 0)
 	if err1 != nil {
 		return nil, err1
@@ -80,7 +83,7 @@ func GetAlbumsByCreator(user string) ([]*Album, error) {
 }
 
 func GetAlbumsByStatus(user string, st uint8) ([]*Album, error) {
-	msg := bson.M{"creator": user, "status": st, "deleteAt": new(time.Time)}
+	msg := bson.M{"creator": user, "status": st, TimeDeleted: 0}
 	cursor, err1 := findMany(TableAlbum, msg, 0)
 	if err1 != nil {
 		return nil, err1
@@ -99,7 +102,7 @@ func GetAlbumsByStatus(user string, st uint8) ([]*Album, error) {
 }
 
 func GetAllAlbums() ([]*Album, error) {
-	cursor, err1 := findAll(TableAlbum, 0)
+	cursor, err1 := findAllEnable(TableAlbum, 0)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -118,37 +121,37 @@ func GetAllAlbums() ([]*Album, error) {
 
 func UpdateAlbumBase(uid, name, remark, operator, psw, loc string, style uint16) error {
 	msg := bson.M{"name": name, "remark": remark, "passwords": psw,
-		"location": loc, "style": style, "operator": operator, "updatedAt": time.Now()}
+		"location": loc, "style": style, "operator": operator, TimeUpdated: time.Now()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
 
 func UpdateAlbumBase2(uid, name, remark, operator, psw string) error {
-	msg := bson.M{"name": name, "remark": remark, "passwords": psw, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"name": name, "remark": remark, "passwords": psw, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
 
 func UpdateAlbumCover(uid, cover, operator string) error {
-	msg := bson.M{"cover": cover, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"cover": cover, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
 
 func UpdateAlbumStatus(uid, operator string, st uint8) error {
-	msg := bson.M{"status": st, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"status": st, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
 
 func UpdateAlbumSize(uid, operator string, size uint64) error {
-	msg := bson.M{"size": size, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"size": size, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
 
 func UpdateAlbumStyle(uid, operator string, st uint16) error {
-	msg := bson.M{"style": st, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"style": st, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
@@ -162,7 +165,7 @@ func UpdateAlbumAssets(uid, operator string, assets []string) error {
 	if len(uid) < 2 {
 		return errors.New("the uid is empty")
 	}
-	msg := bson.M{"assets": assets, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"assets": assets, "operator": operator, TimeUpdated: time.Now()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
@@ -171,13 +174,13 @@ func UpdateAlbumTargets(uid, operator string, targets []string) error {
 	if len(uid) < 2 {
 		return errors.New("the uid is empty")
 	}
-	msg := bson.M{"targets": targets, "operator": operator, "updatedAt": time.Now()}
+	msg := bson.M{"targets": targets, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableAlbum, uid, msg)
 	return err
 }
 
 func GetAlbumsByTarget(target string) ([]*Album, error) {
-	msg := bson.M{"targets": bson.M{"$elemMatch": bson.M{"$eq": target}}, "deleteAt": new(time.Time)}
+	msg := bson.M{"targets": bson.M{"$elemMatch": bson.M{"$eq": target}}, TimeDeleted: 0}
 	cursor, err1 := findMany(TableAlbum, msg, 0)
 	if err1 != nil {
 		return nil, err1

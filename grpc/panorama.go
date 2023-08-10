@@ -15,8 +15,8 @@ func switchPanorama(info *cache.PanoramaInfo) *pb.PanoramaInfo {
 	tmp := new(pb.PanoramaInfo)
 	tmp.Uid = info.UID
 	tmp.Id = info.ID
-	tmp.Created = info.CreateTime.Unix()
-	tmp.Updated = info.UpdateTime.Unix()
+	tmp.Created = info.Created
+	tmp.Updated = info.Updated
 	tmp.Operator = info.Operator
 	tmp.Creator = info.Creator
 	tmp.Name = info.Name
