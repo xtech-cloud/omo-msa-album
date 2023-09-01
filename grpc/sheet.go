@@ -25,6 +25,7 @@ func switchSheet(info *cache.SheetInfo) *pb.SheetInfo {
 	tmp.Owner = info.Owner
 	tmp.Cover = info.Cover
 	tmp.Area = info.Target
+	tmp.Aspect = info.Aspect
 
 	tmp.Tags = info.Tags
 	tmp.Pages = switchSheetPages(info.Pages)
@@ -48,7 +49,7 @@ func (mine *SheetService) AddOne(ctx context.Context, in *pb.ReqSheetAdd, out *p
 		return nil
 	}
 
-	info, err := cache.Context().CreateSheet(in.Name, in.Remark, in.Operator, in.Owner, in.Tags)
+	info, err := cache.Context().CreateSheet(in.Name, in.Remark, in.Operator, in.Owner, in.Aspect, in.Tags)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
@@ -124,6 +125,8 @@ func (mine *SheetService) GetListBy(ctx context.Context, in *pb.RequestFilter, o
 	var err error
 	if in.Field == "" {
 		list = cache.Context().GetSheetsByOwner(in.Owner)
+	} else if in.Field == "target" {
+		list = cache.Context().GetSheetsByTarget(in.Value)
 	} else {
 		err = errors.New("the key not defined")
 	}

@@ -9,18 +9,21 @@ import (
 )
 
 type SheetInfo struct {
-	Status uint8
+	Status uint8 //激活状态，只有紧急的可以被激活，而且同时只有一个
+	Type   uint8 //普通播放列表， 紧急播放列表
+	Size   uint32
 	baseInfo
 	Remark string
 	Owner  string //组织，机构
 	Cover  string
 
+	Aspect string
 	Target string //播放的区域
 	Tags   []string
 	Pages  []*proxy.SheetPage
 }
 
-func (mine *cacheContext) CreateSheet(name, remark, user, owner string, tags []string) (*SheetInfo, error) {
+func (mine *cacheContext) CreateSheet(name, remark, user, owner, aspect string, tags []string) (*SheetInfo, error) {
 	db := new(nosql.Sheet)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetSheetNextID()
@@ -31,6 +34,8 @@ func (mine *cacheContext) CreateSheet(name, remark, user, owner string, tags []s
 	db.Cover = ""
 	db.Owner = owner
 	db.Tags = tags
+	db.Size = 0
+	db.Aspect = aspect
 	if db.Tags == nil {
 		db.Tags = make([]string, 0, 1)
 	}
@@ -71,6 +76,20 @@ func (mine *cacheContext) GetSheetsByOwner(uid string) []*SheetInfo {
 	return list
 }
 
+func (mine *cacheContext) GetSheetsByTarget(uid string) []*SheetInfo {
+	array, err := nosql.GetSheetsByOwner(uid)
+	if err != nil {
+		return make([]*SheetInfo, 0, 0)
+	}
+	list := make([]*SheetInfo, 0, len(array))
+	for _, item := range array {
+		info := new(SheetInfo)
+		info.initInfo(item)
+		list = append(list, info)
+	}
+	return list
+}
+
 func (mine *SheetInfo) initInfo(db *nosql.Sheet) {
 	mine.Name = db.Name
 	mine.UID = db.UID.Hex()
@@ -82,6 +101,7 @@ func (mine *SheetInfo) initInfo(db *nosql.Sheet) {
 	mine.Cover = db.Cover
 	mine.Owner = db.Owner
 	mine.Target = db.Target
+	mine.Aspect = db.Aspect
 	mine.Tags = db.Tags
 
 	mine.Pages = db.Pages
@@ -122,9 +142,9 @@ func (mine *SheetInfo) UpdateTarget(tar, operator string) error {
 }
 
 func (mine *SheetInfo) Remove(operator string) error {
-	if len(mine.Pages) > 0 {
-		return errors.New("the sheet is not empty")
-	}
+	//if len(mine.Pages) > 0 {
+	//	return errors.New("the sheet is not empty")
+	//}
 	return nosql.RemoveSheet(mine.UID, operator)
 }
 
@@ -146,11 +166,16 @@ func (mine *SheetInfo) UpdatePages(assets []*proxy.SheetPage, operator string) e
 	if assets == nil {
 		return nil
 	}
+	size := uint32(0)
+	for _, asset := range assets {
+		size += asset.Weight
+	}
 	err := nosql.UpdateSheetPages(mine.UID, operator, assets)
 	if err == nil {
 		mine.Pages = assets
 		mine.Operator = operator
 		mine.Updated = time.Now().Unix()
+		mine.Size = size
 	}
 	return err
 }

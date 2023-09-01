@@ -15,6 +15,7 @@ type baseInfo struct {
 	Operator string
 	Created  int64
 	Updated  int64
+	Deleted  int64
 }
 
 type cacheContext struct {

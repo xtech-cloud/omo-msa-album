@@ -44,11 +44,6 @@ func switchPageContents(list []*proxy.PageContents) []*pb.PageContent {
 func (mine *PageService) AddOne(ctx context.Context, in *pb.ReqPageAdd, out *pb.ReplyPageInfo) error {
 	path := "page.addOne"
 	inLog(path, in)
-	if len(in.Name) < 1 {
-		out.Status = outError(path, "the name is empty ", pbstatus.ResultStatus_Empty)
-		return nil
-	}
-
 	info, err := cache.Context().CreatePage(in.Name, in.Remark, in.Operator, in.Owner, in.Composition, in.Type, in.Lifecycle, in.Tags)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
@@ -125,6 +120,16 @@ func (mine *PageService) GetListBy(ctx context.Context, in *pb.RequestFilter, ou
 	var err error
 	if in.Field == "" {
 		list = cache.Context().GetPagesByOwner(in.Owner)
+	} else if in.Field == "sheet" {
+		list = cache.Context().GetPagesBySheet(in.Value)
+	} else if in.Field == "type" {
+		tp := parseStringToInt(in.Value)
+		list = cache.Context().GetPagesByType(in.Owner, uint32(tp))
+	} else if in.Field == "status" {
+		tp := parseStringToInt(in.Value)
+		list = cache.Context().GetPagesByStatus(in.Owner, uint32(tp))
+	} else if in.Field == "list" {
+		list = cache.Context().GetPagesByList(in.Values)
 	} else {
 		err = errors.New("the key not defined")
 	}
@@ -198,7 +203,7 @@ func (mine *PageService) SetContent(ctx context.Context, in *pb.ReqPageContent, 
 		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
 	}
-	tmp := &proxy.PageContents{Slot: in.Slot, Way: uint8(in.Way), Type: in.Type, List: in.Assets}
+	tmp := &proxy.PageContents{Slot: in.Slot, Way: uint8(in.Fill), Interval: in.Interval, Type: in.Type, List: in.Assets}
 	err := info.SetContent(tmp, in.Operator)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)

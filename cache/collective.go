@@ -202,8 +202,8 @@ func (mine *CollAlbumInfo) GetSize() uint64 {
 	return mine.Size / 1024
 }
 
-func (mine *CollAlbumInfo) UpdateSize(size uint64) error {
-	err := nosql.UpdateAlbumSize(mine.UID, "", size)
+func (mine *CollAlbumInfo) UpdateSize(size uint64, operator string) error {
+	err := nosql.UpdateAlbumSize(mine.UID, operator, size)
 	if err == nil {
 		mine.Size = size
 	}
@@ -247,7 +247,7 @@ func (mine *CollAlbumInfo) AppendAssets(assets []string, operator string) error 
 
 func (mine *CollAlbumInfo) UpdateAssets(assets []string, operator string) error {
 	if assets == nil {
-		return nil
+		assets = make([]string, 0, 1)
 	}
 	err := nosql.UpdateCollectiveAssets(mine.UID, operator, assets)
 	if err == nil {

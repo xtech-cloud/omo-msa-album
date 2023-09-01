@@ -72,6 +72,60 @@ func (mine *cacheContext) GetPagesByOwner(uid string) []*PageInfo {
 	return list
 }
 
+func (mine *cacheContext) GetPagesByType(owner string, tp uint32) []*PageInfo {
+	array, err := nosql.GetPagesByType(owner, tp)
+	if err != nil {
+		return make([]*PageInfo, 0, 0)
+	}
+	list := make([]*PageInfo, 0, len(array))
+	for _, item := range array {
+		info := new(PageInfo)
+		info.initInfo(item)
+		list = append(list, info)
+	}
+	return list
+}
+
+func (mine *cacheContext) GetPagesByStatus(owner string, st uint32) []*PageInfo {
+	array, err := nosql.GetPagesByStatus(owner, st)
+	if err != nil {
+		return make([]*PageInfo, 0, 0)
+	}
+	list := make([]*PageInfo, 0, len(array))
+	for _, item := range array {
+		info := new(PageInfo)
+		info.initInfo(item)
+		list = append(list, info)
+	}
+	return list
+}
+
+func (mine *cacheContext) GetPagesBySheet(uid string) []*PageInfo {
+	sheet, err := mine.GetSheet(uid)
+	if err != nil {
+		return nil
+	}
+	list := make([]*PageInfo, 0, len(sheet.Pages))
+	for _, page := range sheet.Pages {
+		tmp, _ := cacheCtx.GetPage(page.UID)
+		if tmp != nil && tmp.baseInfo.Deleted == 0 {
+			list = append(list, tmp)
+		}
+	}
+	return list
+}
+
+func (mine *cacheContext) GetPagesByList(arr []string) []*PageInfo {
+	list := make([]*PageInfo, 0, len(arr))
+	for _, page := range arr {
+		tmp, _ := cacheCtx.GetPage(page)
+		if tmp != nil {
+			list = append(list, tmp)
+		}
+	}
+	return list
+}
+
 func (mine *PageInfo) initInfo(db *nosql.Page) {
 	mine.Name = db.Name
 	mine.UID = db.UID.Hex()
@@ -80,6 +134,7 @@ func (mine *PageInfo) initInfo(db *nosql.Page) {
 	mine.Created = db.Created
 	mine.Updated = db.Updated
 	mine.Creator = db.Creator
+	mine.Deleted = db.Deleted
 	mine.Operator = db.Operator
 	mine.Remark = db.Remark
 	mine.Owner = db.Owner
@@ -95,7 +150,7 @@ func (mine *PageInfo) initInfo(db *nosql.Page) {
 }
 
 func (mine *PageInfo) UpdateBase(name, remark, operator string, life uint32) error {
-	err := nosql.UpdatePageBase(mine.UID, name, remark, operator)
+	err := nosql.UpdatePageBase(mine.UID, name, remark, operator, life)
 	if err == nil {
 		mine.Name = name
 		mine.Remark = remark

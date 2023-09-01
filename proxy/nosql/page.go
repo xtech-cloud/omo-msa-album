@@ -22,6 +22,7 @@ type Page struct {
 	Remark      string `json:"remark" bson:"remark"`
 	Owner       string `json:"owner" bson:"owner"`
 	Type        uint8  `json:"type" bson:"type"`
+	Status      uint8  `json:"status" bson:"status"`
 	Lifecycle   uint32 `json:"lifecycle" bson:"lifecycle"`
 	Composition string `json:"composition" bson:"composition"`
 
@@ -57,6 +58,44 @@ func GetPage(uid string) (*Page, error) {
 
 func GetPagesByOwner(user string) ([]*Page, error) {
 	msg := bson.M{"owner": user, TimeDeleted: 0}
+	cursor, err1 := findMany(TablePage, msg, 0)
+	if err1 != nil {
+		return nil, err1
+	}
+	defer cursor.Close(context.Background())
+	var items = make([]*Page, 0, 50)
+	for cursor.Next(context.Background()) {
+		var node = new(Page)
+		if err := cursor.Decode(node); err != nil {
+			return nil, err
+		} else {
+			items = append(items, node)
+		}
+	}
+	return items, nil
+}
+
+func GetPagesByType(owner string, tp uint32) ([]*Page, error) {
+	msg := bson.M{"owner": owner, "type": tp, TimeDeleted: 0}
+	cursor, err1 := findMany(TablePage, msg, 0)
+	if err1 != nil {
+		return nil, err1
+	}
+	defer cursor.Close(context.Background())
+	var items = make([]*Page, 0, 50)
+	for cursor.Next(context.Background()) {
+		var node = new(Page)
+		if err := cursor.Decode(node); err != nil {
+			return nil, err
+		} else {
+			items = append(items, node)
+		}
+	}
+	return items, nil
+}
+
+func GetPagesByStatus(owner string, st uint32) ([]*Page, error) {
+	msg := bson.M{"owner": owner, "status": st, TimeDeleted: 0}
 	cursor, err1 := findMany(TablePage, msg, 0)
 	if err1 != nil {
 		return nil, err1

@@ -66,3 +66,14 @@ func parseStringToInt(src string) int {
 	}
 	return int(st)
 }
+
+func parseStringToInt64(src string) int64 {
+	if src == "" {
+		return -1
+	}
+	st, er := strconv.ParseInt(src, 10, 64)
+	if er != nil {
+		return -1
+	}
+	return st
+}

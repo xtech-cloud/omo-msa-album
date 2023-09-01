@@ -258,8 +258,8 @@ func (mine *AlbumInfo) UpdateTargets(operator string, targets []string) error {
 	return err
 }
 
-func (mine *AlbumInfo) UpdateSize(size uint64) error {
-	err := nosql.UpdateAlbumSize(mine.UID, "", size)
+func (mine *AlbumInfo) UpdateSize(size uint64, operator string) error {
+	err := nosql.UpdateAlbumSize(mine.UID, operator, size)
 	if err == nil {
 		mine.Size = size
 	}

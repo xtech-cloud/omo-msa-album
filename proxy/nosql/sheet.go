@@ -23,6 +23,10 @@ type Sheet struct {
 	Owner  string `json:"owner" bson:"owner"`
 	Cover  string `json:"cover" bson:"cover"`
 	Target string `json:"target" bson:"target"`
+	Aspect string `json:"aspect" bson:"aspect"`
+	Size   uint32 `json:"size" bson:"size"`
+	Type   uint8  `json:"type" bson:"type"`
+	Status uint8  `json:"status" bson:"status"`
 
 	Tags  []string           `json:"tags" bson:"tags"`
 	Pages []*proxy.SheetPage `json:"pages" bson:"pages"`
@@ -56,6 +60,25 @@ func GetSheet(uid string) (*Sheet, error) {
 
 func GetSheetsByOwner(user string) ([]*Sheet, error) {
 	msg := bson.M{"owner": user, TimeDeleted: 0}
+	cursor, err1 := findMany(TableSheet, msg, 0)
+	if err1 != nil {
+		return nil, err1
+	}
+	defer cursor.Close(context.Background())
+	var items = make([]*Sheet, 0, 50)
+	for cursor.Next(context.Background()) {
+		var node = new(Sheet)
+		if err := cursor.Decode(node); err != nil {
+			return nil, err
+		} else {
+			items = append(items, node)
+		}
+	}
+	return items, nil
+}
+
+func GetSheetsByTarget(target string) ([]*Sheet, error) {
+	msg := bson.M{"target": target, TimeDeleted: 0}
 	cursor, err1 := findMany(TableSheet, msg, 0)
 	if err1 != nil {
 		return nil, err1
