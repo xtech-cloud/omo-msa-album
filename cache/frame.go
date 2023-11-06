@@ -20,7 +20,8 @@ type PhotoFrameInfo struct {
 func (mine *cacheContext) CreatePhotoFrame(name, remark, asset, owner, user string, width, height uint32) (*PhotoFrameInfo, error) {
 	db := new(nosql.PhotoFrame)
 	db.UID = primitive.NewObjectID()
-	db.ID = nosql.GetAlbumNextID()
+	db.ID = nosql.GetPhotoFrameNextID()
+	db.CreatedTime = time.Now()
 	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name

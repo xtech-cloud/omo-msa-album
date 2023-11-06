@@ -28,6 +28,7 @@ func (mine *cacheContext) CreateCollAlbum(name, remark, user, group string, tp u
 	db := new(nosql.Collective)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetCollectiveNextID()
+	db.CreatedTime = time.Now()
 	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name

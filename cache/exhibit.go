@@ -26,6 +26,7 @@ func (mine *cacheContext) CreateExhibit(name, remark, cover, owner, operator str
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetExhibitNextID()
 	db.Created = time.Now().Unix()
+	db.CreatedTime = time.Now()
 	db.Creator = operator
 	db.Name = name
 	db.Remark = remark

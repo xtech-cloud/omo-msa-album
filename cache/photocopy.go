@@ -23,8 +23,9 @@ type PhotocopyInfo struct {
 func (mine *cacheContext) CreatePhotocopy(name, remark, user, template, owner string) (*PhotocopyInfo, error) {
 	db := new(nosql.Photocopy)
 	db.UID = primitive.NewObjectID()
-	db.ID = nosql.GetAlbumNextID()
+	db.ID = nosql.GetPhotocopyNextID()
 	db.Created = time.Now().Unix()
+	db.CreatedTime = time.Now()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark

@@ -18,6 +18,7 @@ func (mine *cacheContext) CreatePanorama(name, remark, json, owner, operator str
 	db := new(nosql.Panorama)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetPanoramaNextID()
+	db.CreatedTime = time.Now()
 	db.Created = time.Now().Unix()
 	db.Creator = operator
 	db.Name = name

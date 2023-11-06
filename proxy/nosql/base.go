@@ -78,32 +78,44 @@ func CheckTimes() {
 	dbs := make([]*Album, 0, 100)
 	dbs = GetAll(TableAlbum, dbs)
 	for _, db := range dbs {
-		UpdateItemTime(TableAlbum, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		if db.Created < 1 {
+			UpdateItemTime(TableAlbum, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		}
 	}
 	dbs1 := make([]*Collective, 0, 100)
 	dbs1 = GetAll(TableCollective, dbs1)
 	for _, db := range dbs1 {
-		UpdateItemTime(TableCollective, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		if db.Created < 1 {
+			UpdateItemTime(TableCollective, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		}
 	}
 	dbs3 := make([]*Exhibit, 0, 100)
 	dbs3 = GetAll(TableExhibit, dbs3)
 	for _, db := range dbs3 {
-		UpdateItemTime(TableExhibit, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		if db.Created < 1 {
+			UpdateItemTime(TableExhibit, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		}
 	}
 	dbs2 := make([]*PhotoFrame, 0, 100)
 	dbs2 = GetAll(TablePhotoFrame, dbs2)
 	for _, db := range dbs2 {
-		UpdateItemTime(TablePhotoFrame, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		if db.Created < 1 {
+			UpdateItemTime(TablePhotoFrame, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		}
 	}
 	dbs4 := make([]*Panorama, 0, 100)
 	dbs4 = GetAll(TablePanorama, dbs4)
 	for _, db := range dbs4 {
-		UpdateItemTime(TablePanorama, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		if db.Created < 1 {
+			UpdateItemTime(TablePanorama, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		}
 	}
 	dbs5 := make([]*Photocopy, 0, 100)
 	dbs5 = GetAll(TablePhotocopy, dbs5)
 	for _, db := range dbs5 {
-		UpdateItemTime(TablePhotocopy, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		if db.Created < 1 {
+			UpdateItemTime(TablePhotocopy, db.UID.Hex(), db.CreatedTime, db.UpdatedTime, db.DeleteTime)
+		}
 	}
 }
 

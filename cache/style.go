@@ -31,8 +31,9 @@ type PhotoStyleInfo struct {
 func (mine *cacheContext) CreatePhotoTemplate(name, remark, user string, kind uint8) (*PhotoStyleInfo, error) {
 	db := new(nosql.PhotoStyle)
 	db.UID = primitive.NewObjectID()
-	db.ID = nosql.GetAlbumNextID()
+	db.ID = nosql.GetPhotoStyleNextID()
 	db.Created = time.Now().Unix()
+	db.CreatedTime = time.Now()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark

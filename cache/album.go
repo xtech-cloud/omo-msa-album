@@ -46,6 +46,7 @@ func (mine *cacheContext) CreateAlbum(name, remark, user, loc string, kind uint8
 	db := new(nosql.Album)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetAlbumNextID()
+	db.CreatedTime = time.Now()
 	db.Created = time.Now().Unix()
 	db.Creator = user
 	db.Name = name
