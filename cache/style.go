@@ -2,9 +2,13 @@ package cache
 
 import (
 	"errors"
+	"fmt"
+	pb "github.com/xtech-cloud/omo-msp-album/proto/album"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"omo.msa.album/proxy"
 	"omo.msa.album/proxy/nosql"
+	"omo.msa.album/tool"
+	"strconv"
 	"time"
 )
 
@@ -17,58 +21,89 @@ const (
 type StyleType uint8
 
 // 影集样式或者模板
-type PhotoStyleInfo struct {
+type CertificateStyleInfo struct {
 	baseInfo
-	Remark string
-	Type   StyleType
-	Cover  string
-	Size   uint8
-	Price  uint32
-	Slots  []proxy.PhotocopySlot
+	Count      uint32
+	Year       int
+	Remark     string
+	Type       StyleType
+	Cover      string
+	Background string
+	Prefix     string
+
 	Tags   []string
+	Scenes []string
+	Slots  []proxy.StyleSlot
 }
 
-func (mine *cacheContext) CreatePhotoTemplate(name, remark, user string, kind uint8) (*PhotoStyleInfo, error) {
-	db := new(nosql.PhotoStyle)
+func (mine *cacheContext) CreateStyle(name, remark, user, cover, bg, prefix string, kind uint8, tags, scenes []string, slots []proxy.StyleSlot) (*CertificateStyleInfo, error) {
+	db := new(nosql.CertificateStyle)
 	db.UID = primitive.NewObjectID()
-	db.ID = nosql.GetPhotoStyleNextID()
+	db.ID = nosql.GetCertificateStyleNextID()
 	db.Created = time.Now().Unix()
 	db.CreatedTime = time.Now()
 	db.Creator = user
 	db.Name = name
 	db.Remark = remark
 	db.Type = kind
-	db.Slots = make([]proxy.PhotocopySlot, 0, 1)
-	err := nosql.CreatePhotoStyle(db)
+	db.Tags = tags
+	db.Cover = cover
+	db.Prefix = prefix
+	db.Scenes = scenes
+	db.Background = bg
+	db.Slots = slots
+	db.Count = 0
+	if db.Slots == nil {
+		db.Slots = make([]proxy.StyleSlot, 0, 1)
+	}
+
+	if db.Tags == nil {
+		db.Tags = make([]string, 0, 1)
+	}
+	if db.Scenes == nil {
+		db.Scenes = make([]string, 0, 1)
+	}
+	err := nosql.CreateCertificateStyle(db)
 	if err != nil {
 		return nil, err
 	}
-	info := new(PhotoStyleInfo)
+	info := new(CertificateStyleInfo)
 	info.initInfo(db)
 	return info, nil
 }
 
-func (mine *cacheContext) GetPhotoTemplate(uid string) (*PhotoStyleInfo, error) {
+func (mine *cacheContext) GetStyle(uid string) (*CertificateStyleInfo, error) {
 	if len(uid) < 2 {
 		return nil, errors.New("the PhotoTemplate uid is empty")
 	}
-	db, err := nosql.GetPhotoStyle(uid)
+	db, err := nosql.GetCertificateStyle(uid)
 	if err != nil {
 		return nil, err
 	}
-	info := new(PhotoStyleInfo)
+	info := new(CertificateStyleInfo)
 	info.initInfo(db)
 	return info, nil
 }
 
-func (mine *cacheContext) GetPhotoStyles(page, number uint32) (uint32, uint32, []*PhotoStyleInfo) {
-	list := make([]*PhotoStyleInfo, 0, 20)
-	array, err := nosql.GetAllPhotoStyles()
+func (mine *cacheContext) GetCertificatesCountByStyle(uid string) uint32 {
+	if len(uid) < 2 {
+		return 0
+	}
+	num, err := nosql.GetCertificatesCountByStyle(uid)
+	if err != nil {
+		return 0
+	}
+	return num
+}
+
+func (mine *cacheContext) GetStyles(page, number uint32) (uint32, uint32, []*CertificateStyleInfo) {
+	list := make([]*CertificateStyleInfo, 0, 20)
+	array, err := nosql.GetAllCertificateStyles()
 	if err != nil {
 		return 0, 0, list
 	}
 	for _, item := range array {
-		info := new(PhotoStyleInfo)
+		info := new(CertificateStyleInfo)
 		info.initInfo(item)
 		list = append(list, info)
 	}
@@ -82,7 +117,23 @@ func (mine *cacheContext) GetPhotoStyles(page, number uint32) (uint32, uint32, [
 	return total, maxPage, set
 }
 
-func (mine *PhotoStyleInfo) initInfo(db *nosql.PhotoStyle) {
+func (mine *cacheContext) GetStylesByScene(scene string) []*CertificateStyleInfo {
+	list := make([]*CertificateStyleInfo, 0, 20)
+	dbs, err := nosql.GetAllCertificateStyles()
+	if err != nil {
+		return list
+	}
+	for _, db := range dbs {
+		if tool.HasItem(db.Scenes, scene) {
+			info := new(CertificateStyleInfo)
+			info.initInfo(db)
+			list = append(list, info)
+		}
+	}
+	return list
+}
+
+func (mine *CertificateStyleInfo) initInfo(db *nosql.CertificateStyle) {
 	mine.Name = db.Name
 	mine.UID = db.UID.Hex()
 	mine.ID = db.ID
@@ -90,78 +141,69 @@ func (mine *PhotoStyleInfo) initInfo(db *nosql.PhotoStyle) {
 	mine.Created = db.Created
 	mine.Operator = db.Operator
 	mine.Creator = db.Creator
-	mine.Size = db.Size
+	mine.Background = db.Background
 	mine.Cover = db.Cover
 	mine.Type = StyleType(db.Type)
-
+	mine.Tags = db.Tags
+	mine.Scenes = db.Scenes
 	mine.Slots = db.Slots
+	mine.Count = db.Count
 	if mine.Slots == nil {
-		mine.Slots = make([]proxy.PhotocopySlot, 0, 1)
+		mine.Slots = make([]proxy.StyleSlot, 0, 1)
 	}
 }
 
-func (mine *PhotoStyleInfo) UpdateBase(name, remark, operator string, tp uint8) error {
-	err := nosql.UpdatePhotoStyleBase(mine.UID, name, remark, operator, tp)
+func (mine *CertificateStyleInfo) UpdateBase(operator string, in *pb.ReqStyleUpdate) error {
+	slots := make([]proxy.StyleSlot, 0, len(in.Slots))
+	for _, slot := range in.Slots {
+		slots = append(slots, proxy.StyleSlot{
+			Key:    slot.Key,
+			X:      slot.X,
+			Y:      slot.Y,
+			Width:  slot.Width,
+			Height: slot.Height,
+			Bold:   slot.Bold,
+			Size:   slot.Size,
+		})
+	}
+	err := nosql.UpdateCertificateStyleBase(mine.UID, operator, in.Name, in.Remark, in.Background, in.Tags, in.Scenes, slots, uint8(in.Type))
 	if err == nil {
-		mine.Name = name
-		mine.Remark = remark
+		mine.Name = in.Name
+		mine.Remark = in.Remark
 		mine.Operator = operator
-		mine.Type = StyleType(tp)
+		mine.Background = in.Background
+		mine.Tags = in.Tags
+		mine.Scenes = in.Scenes
+		mine.Slots = slots
+		mine.Type = StyleType(in.Type)
 	}
 	return err
 }
 
-func (mine *PhotoStyleInfo) Remove(operator string) error {
-	return nosql.RemovePhotoStyle(mine.UID, operator)
-}
-
-func (mine *PhotoStyleInfo) getPage(index uint8) *proxy.PhotocopySlot {
-	for _, page := range mine.Slots {
-		if page.Index == index {
-			return &page
-		}
+func (mine *CertificateStyleInfo) updateCount(operator string, num uint32) error {
+	y := time.Now().Year()
+	if mine.Year != y {
+		num = 1
 	}
-	return nil
-}
-
-func (mine *PhotoStyleInfo) hadPage(index uint8) bool {
-	for _, page := range mine.Slots {
-		if page.Index == index {
-			return true
-		}
-	}
-	return false
-}
-
-/**
-从相册中删除一个页面
-*/
-func (mine *PhotoStyleInfo) SubtractPage(index uint8) error {
-	if !mine.hadPage(index) {
-		return nil
-	}
-	err := nosql.SubtractPhotoStylePage(mine.UID, index)
+	err := nosql.UpdateCertificateStyleCount(mine.UID, operator, y, int(num))
 	if err == nil {
-		for i := 0; i < len(mine.Slots); i += 1 {
-			if mine.Slots[i].Index == index {
-				mine.Slots = append(mine.Slots[:i], mine.Slots[i+1:]...)
-				break
-			}
-		}
+		mine.Count = num
+		mine.Year = y
+		mine.Operator = operator
 	}
 	return err
 }
 
-/**
-向相册中添加一个页面
-*/
-func (mine *PhotoStyleInfo) AppendPage(page proxy.PhotocopySlot) error {
-	if mine.hadPage(page.Index) {
-		return nil
+func (mine *CertificateStyleInfo) GetSN(operator string) string {
+	err := mine.updateCount(operator, mine.Count+1)
+	if err != nil {
+		return ""
 	}
-	err := nosql.AppendPhotoStylePage(mine.UID, page)
-	if err == nil {
-		mine.Slots = append(mine.Slots, page)
-	}
-	return err
+	tp := StringPad(strconv.Itoa(int(mine.Type)), 3, "0", PadLeft)
+	s := StringPad(strconv.Itoa(int(mine.Count)), 5, "0", PadLeft)
+	return fmt.Sprintf("%s-%s-%d-%s", mine.Prefix, tp, mine.Year, s)
+}
+
+func (mine *CertificateStyleInfo) Remove(operator string) error {
+	return nosql.RemoveCertificateStyle(mine.UID, operator)
 }

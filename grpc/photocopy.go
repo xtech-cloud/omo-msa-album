@@ -46,6 +46,20 @@ func switchSlots(list []proxy.PhotocopySlot) []*pb.PhotocopySlot {
 	return arr
 }
 
+func switchStyleSlots(list []proxy.StyleSlot) []*pb.StyleSlot {
+	arr := make([]*pb.StyleSlot, 0, len(list))
+	for _, slot := range list {
+		tmp := new(pb.StyleSlot)
+		tmp.Key = slot.Key
+		tmp.X = slot.X
+		tmp.Y = slot.Y
+		tmp.Width = slot.Width
+		tmp.Height = slot.Height
+		arr = append(arr, tmp)
+	}
+	return arr
+}
+
 func (mine *PhotocopyService) AddOne(ctx context.Context, in *pb.ReqPhotocopyAdd, out *pb.ReplyPhotocopyInfo) error {
 	path := "photocopy.add"
 	inLog(path, in)

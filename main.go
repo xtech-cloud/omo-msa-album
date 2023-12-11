@@ -50,6 +50,7 @@ func main() {
 	_ = proto.RegisterCompositionServiceHandler(service.Server(), new(grpc.CompositionService))
 	_ = proto.RegisterPageServiceHandler(service.Server(), new(grpc.PageService))
 	_ = proto.RegisterSheetServiceHandler(service.Server(), new(grpc.SheetService))
+	_ = proto.RegisterCertificateServiceHandler(service.Server(), new(grpc.CertificateService))
 
 	app, _ := filepath.Abs(os.Args[0])
 

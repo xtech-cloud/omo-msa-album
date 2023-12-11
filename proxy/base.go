@@ -41,3 +41,13 @@ type Vector2 struct {
 	X int32 `json:"x" bson:"x"`
 	Y int32 `json:"y" bson:"y"`
 }
+
+type StyleSlot struct {
+	Key    string `json:"key" bson:"key"`
+	X      int32  `json:"x" bson:"x"`
+	Y      int32  `json:"y" bson:"y"`
+	Width  uint32 `json:"width" bson:"width"`
+	Height uint32 `json:"height" bson:"height"`
+	Bold   uint32 `json:"bold" bson:"bold"`
+	Size   uint32 `json:"size" bson:"size"`
+}

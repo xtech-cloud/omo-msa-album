@@ -1,11 +1,20 @@
 package cache
 
 import (
+	"bytes"
 	"omo.msa.album/config"
 	"omo.msa.album/proxy/nosql"
 )
 
 const DefaultOwner = "system"
+
+const (
+	PadLeft  PadType = 0
+	PadRight PadType = 1
+	PadBoth  PadType = 2
+)
+
+type PadType uint8
 
 type baseInfo struct {
 	ID       uint64 `json:"-"`
@@ -56,32 +65,44 @@ func checkOwner() {
 	}
 }
 
-//func checkPage(page, number uint32, all interface{}) (uint32, uint32, interface{}) {
-//	if number < 1 {
-//		number = 10
-//	}
-//	array := reflect.ValueOf(all)
-//	total := uint32(array.Len())
-//	maxPage := total / number
-//	if total%number != 0 {
-//		maxPage = total/number + 1
-//	}
-//	if page < 1 {
-//		return total, maxPage, all
-//	}
-//	if page > maxPage {
-//		page = maxPage
-//	}
-//
-//	var start = (page - 1) * number
-//	var end = start + number
-//	if end > total {
-//		end = total
-//	}
-//
-//	list := array.Slice(int(start), int(end))
-//	return total, maxPage, list.Interface()
-//}
+//StringPad tp: 0=left; 1=right; 2=both
+func StringPad(input string, length int, pad string, tp PadType) string {
+	var left, right = 0, 0
+	chars := length - len(input)
+	if chars <= 0 {
+		return input
+	}
+	var buffer bytes.Buffer
+	buffer.WriteString(input)
+	switch tp {
+	case PadLeft:
+		left = chars
+		right = 0
+	case PadRight:
+		left = 0
+		right = chars
+	case PadBoth:
+		right = chars / 2
+		left = chars - right
+	}
+	var leftBuffer bytes.Buffer
+	for i := 0; i < left; i += 1 {
+		leftBuffer.WriteString(pad)
+		if leftBuffer.Len() > left {
+			leftBuffer.Truncate(left)
+			break
+		}
+	}
+	for i := 0; i < right; i += 1 {
+		buffer.WriteString(pad)
+		if buffer.Len() > length {
+			buffer.Truncate(length)
+			break
+		}
+	}
+	leftBuffer.WriteString(buffer.String())
+	return leftBuffer.String()
+}
 
 func CheckPage[T any](page, number uint32, all []T) (uint32, uint32, []T) {
 	if len(all) < 1 {

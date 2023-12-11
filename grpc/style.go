@@ -7,11 +7,12 @@ import (
 	pb "github.com/xtech-cloud/omo-msp-album/proto/album"
 	pbstatus "github.com/xtech-cloud/omo-msp-status/proto/status"
 	"omo.msa.album/cache"
+	"omo.msa.album/proxy"
 )
 
 type StyleService struct{}
 
-func switchStyle(info *cache.PhotoStyleInfo) *pb.StyleInfo {
+func switchStyle(info *cache.CertificateStyleInfo) *pb.StyleInfo {
 	tmp := new(pb.StyleInfo)
 	tmp.Uid = info.UID
 	tmp.Id = info.ID
@@ -22,11 +23,12 @@ func switchStyle(info *cache.PhotoStyleInfo) *pb.StyleInfo {
 	tmp.Name = info.Name
 	tmp.Remark = info.Remark
 	tmp.Cover = info.Cover
-	tmp.Size = uint32(info.Size)
-	tmp.Price = uint32(info.Price)
+	tmp.Prefix = info.Prefix
+	tmp.Background = info.Background
 	tmp.Type = uint32(info.Type)
 	tmp.Tags = info.Tags
-	tmp.Slots = switchSlots(info.Slots)
+	tmp.Scenes = info.Scenes
+	tmp.Slots = switchStyleSlots(info.Slots)
 	return tmp
 }
 
@@ -37,8 +39,19 @@ func (mine *StyleService) AddOne(ctx context.Context, in *pb.ReqStyleAdd, out *p
 		out.Status = outError(path, "the name is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-
-	info, err := cache.Context().CreatePhotoTemplate(in.Name, in.Remark, in.Operator, uint8(in.Type))
+	slots := make([]proxy.StyleSlot, 0, len(in.Slots))
+	for _, slot := range in.Slots {
+		slots = append(slots, proxy.StyleSlot{
+			Key:    slot.Key,
+			X:      slot.X,
+			Y:      slot.Y,
+			Width:  slot.Width,
+			Height: slot.Height,
+			Bold:   slot.Bold,
+			Size:   slot.Size,
+		})
+	}
+	info, err := cache.Context().CreateStyle(in.Name, in.Remark, in.Operator, in.Cover, in.Background, in.Prefix, uint8(in.Type), in.Tags, in.Scenes, slots)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
@@ -55,9 +68,9 @@ func (mine *StyleService) GetOne(ctx context.Context, in *pb.RequestInfo, out *p
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-	info, er := cache.Context().GetPhotoTemplate(in.Uid)
+	info, er := cache.Context().GetStyle(in.Uid)
 	if er != nil {
-		out.Status = outError(path, "the style not found ", pbstatus.ResultStatus_NotExisted)
+		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
 	}
 	out.Info = switchStyle(info)
@@ -72,13 +85,13 @@ func (mine *StyleService) UpdateBase(ctx context.Context, in *pb.ReqStyleUpdate,
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-	info, er := cache.Context().GetPhotoTemplate(in.Uid)
+	info, er := cache.Context().GetStyle(in.Uid)
 	if er != nil {
 		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
 	}
 	var err error
-	err = info.UpdateBase(in.Name, in.Remark, in.Operator, uint8(in.Type))
+	err = info.UpdateBase(in.Remark, in)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
@@ -89,13 +102,23 @@ func (mine *StyleService) UpdateBase(ctx context.Context, in *pb.ReqStyleUpdate,
 }
 
 func (mine *StyleService) GetStatistic(ctx context.Context, in *pb.RequestFilter, out *pb.ReplyStatistic) error {
-	path := "Style.getStatistic"
+	path := "style.getStatistic"
 	inLog(path, in)
 	if len(in.Field) < 1 {
 		out.Status = outError(path, "the user is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
 
+	if in.Field == "sn" {
+		info, err := cache.Context().GetStyle(in.Value)
+		if err != nil {
+			out.Status = outError(path, err.Error(), pbstatus.ResultStatus_NotExisted)
+			return nil
+		}
+		out.Key = info.GetSN(in.Operator)
+	} else if in.Field == "count" {
+		out.Count = cache.Context().GetCertificatesCountByStyle(in.Value)
+	}
 	out.Status = outLog(path, out)
 	return nil
 }
@@ -107,14 +130,14 @@ func (mine *StyleService) RemoveOne(ctx context.Context, in *pb.RequestInfo, out
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-	info, er := cache.Context().GetPhotoTemplate(in.Uid)
+	info, er := cache.Context().GetStyle(in.Uid)
 	if er != nil {
-		out.Status = outError(path, "the photo style not found ", pbstatus.ResultStatus_NotExisted)
+		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
 	}
 	er = info.Remove(in.Operator)
 	if er != nil {
-		out.Status = outError(path, "the photo style not found ", pbstatus.ResultStatus_NotExisted)
+		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_DBException)
 		return nil
 	}
 
@@ -134,10 +157,13 @@ func (mine *StyleService) Search(ctx context.Context, in *pb.RequestInfo, out *p
 func (mine *StyleService) GetListByFilter(ctx context.Context, in *pb.RequestFilter, out *pb.ReplyStyleList) error {
 	path := "style.getListByFilter"
 	inLog(path, in)
-	var list []*cache.PhotoStyleInfo
+	var list []*cache.CertificateStyleInfo
 	var err error
+
 	if in.Field == "" {
-		//list,err = cache.Context().GetPhotoStyles(in.Page, in.Number)
+		out.Total, out.Pages, list = cache.Context().GetStyles(in.Page, in.Number)
+	} else if in.Field == "scene" {
+		list = cache.Context().GetStylesByScene(in.Value)
 	} else {
 		err = errors.New("the key not defined")
 	}
@@ -149,7 +175,6 @@ func (mine *StyleService) GetListByFilter(ctx context.Context, in *pb.RequestFil
 	for _, value := range list {
 		out.List = append(out.List, switchStyle(value))
 	}
-
 	out.Status = outLog(path, fmt.Sprintf("the length = %d", len(out.List)))
 	return nil
 }
@@ -161,33 +186,18 @@ func (mine *StyleService) UpdateByFilter(ctx context.Context, in *pb.RequestUpda
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-
-	out.Status = outLog(path, out)
-	return nil
-}
-
-func (mine *StyleService) AppendSlot(ctx context.Context, in *pb.RequestList, out *pb.ReplyList) error {
-	path := "style.appendSlot"
-	inLog(path, in)
-	if len(in.Uid) < 1 {
-		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
+	_, err := cache.Context().GetStyle(in.Uid)
+	if err != nil {
+		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
 	}
+	if in.Field == "count" {
 
-	out.Uid = in.Uid
-	out.Status = outLog(path, out)
-	return nil
-}
-
-func (mine *StyleService) SubtractSlot(ctx context.Context, in *pb.RequestList, out *pb.ReplyList) error {
-	path := "style.subtractSlot"
-	inLog(path, in)
-	if len(in.Uid) < 1 {
-		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
+	}
+	if err != nil {
+		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
 	}
-
-	out.Uid = in.Uid
 	out.Status = outLog(path, out)
 	return nil
 }
