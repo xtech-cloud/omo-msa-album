@@ -29,6 +29,18 @@ func switchCertificate(info *cache.CertificateInfo) *pb.CertificateInfo {
 	tmp.Status = uint32(info.Status)
 	tmp.Type = uint32(info.Type)
 	tmp.Tags = info.Tags
+	tmp.Assets = info.Assets
+	if info.Contact != nil {
+		tmp.Contact = &pb.ContactInfo{
+			Name:    info.Contact.Name,
+			Phone:   info.Contact.Phone,
+			Address: info.Contact.Address,
+			Remark:  info.Contact.Remark,
+		}
+	} else {
+		tmp.Contact = &pb.ContactInfo{}
+	}
+
 	return tmp
 }
 
@@ -40,7 +52,7 @@ func (mine *CertificateService) AddOne(ctx context.Context, in *pb.ReqCertificat
 		return nil
 	}
 
-	info, err := cache.Context().CreateCertificate(in.Name, in.Remark, in.Operator, in.Sn, in.Scene, in.Image, in.Target, in.Style, uint8(in.Type), in.Tags)
+	info, err := cache.Context().CreateCertificate(in)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
@@ -143,7 +155,7 @@ func (mine *CertificateService) GetListByFilter(ctx context.Context, in *pb.Requ
 	} else if in.Field == "scene" {
 		list = cache.Context().GetCertificatesByScene(in.Value)
 	} else if in.Field == "style" {
-		list = cache.Context().GetCertificatesByStyle(in.Value)
+		list = cache.Context().GetCertificatesByStyle(in.Owner, in.Value)
 	} else {
 		err = errors.New("the key not defined")
 	}
@@ -167,19 +179,44 @@ func (mine *CertificateService) UpdateByFilter(ctx context.Context, in *pb.Reque
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
+	info, er := cache.Context().GetCertificate(in.Uid)
+	if er != nil {
+		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
+		return nil
+	}
+	if in.Field == "contact" {
+		if len(in.Values) == 4 {
+			er = info.UpdateContact(in.Values[0], in.Values[1], in.Values[2], in.Values[3], in.Operator)
+		} else {
+			er = errors.New("the param count error")
+		}
 
+	}
+	if er != nil {
+		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_DBException)
+		return nil
+	}
 	out.Status = outLog(path, out)
 	return nil
 }
 
 func (mine *CertificateService) UpdateStatus(ctx context.Context, in *pb.RequestIntFlag, out *pb.ReplyInfo) error {
-	path := "certificate.updateByFilter"
+	path := "certificate.updateStatus"
 	inLog(path, in)
 	if len(in.Uid) < 1 {
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-
+	info, er := cache.Context().GetCertificate(in.Uid)
+	if er != nil {
+		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
+		return nil
+	}
+	er = info.UpdateStatus(in.Operator, uint8(in.Flag))
+	if er != nil {
+		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_DBException)
+		return nil
+	}
 	out.Status = outLog(path, out)
 	return nil
 }

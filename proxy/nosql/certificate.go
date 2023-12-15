@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"omo.msa.album/proxy"
 	"time"
 )
 
@@ -16,16 +17,18 @@ type Certificate struct {
 	Creator  string             `json:"creator" bson:"creator"`
 	Operator string             `json:"operator" bson:"operator"`
 
-	Name   string   `json:"name" bson:"name"`
-	Remark string   `json:"remark" bson:"remark"`
-	SN     string   `json:"sn" bson:"sn"`
-	Image  string   `json:"image" bson:"image"`
-	Type   uint8    `json:"type" bson:"type"`
-	Status uint8    `json:"status" bson:"status"`
-	Style  string   `json:"style" bson:"style"`
-	Target string   `json:"target" bson:"target"`
-	Scene  string   `json:"scene" bson:"scene"`
-	Tags   []string `json:"tags" bson:"tags"`
+	Name    string             `json:"name" bson:"name"`
+	Remark  string             `json:"remark" bson:"remark"`
+	SN      string             `json:"sn" bson:"sn"`
+	Image   string             `json:"image" bson:"image"`
+	Type    uint8              `json:"type" bson:"type"`
+	Status  uint8              `json:"status" bson:"status"`
+	Style   string             `json:"style" bson:"style"`
+	Target  string             `json:"target" bson:"target"`
+	Scene   string             `json:"scene" bson:"scene"`
+	Contact *proxy.ContactInfo `json:"contact" bson:"contact"`
+	Tags    []string           `json:"tags" bson:"tags"`
+	Assets  []string           `json:"assets" bson:"assets"`
 }
 
 func CreateCertificate(info *Certificate) error {
@@ -111,6 +114,25 @@ func GetCertificatesByStyle(style string) ([]*Certificate, error) {
 	return items, nil
 }
 
+func GetCertificatesBySceneStyle(scene, style string) ([]*Certificate, error) {
+	msg := bson.M{"scene": scene, "style": style, TimeDeleted: 0}
+	cursor, err1 := findMany(TableCertificate, msg, 0)
+	if err1 != nil {
+		return nil, err1
+	}
+	defer cursor.Close(context.Background())
+	var items = make([]*Certificate, 0, 50)
+	for cursor.Next(context.Background()) {
+		var node = new(Certificate)
+		if err := cursor.Decode(node); err != nil {
+			return nil, err
+		} else {
+			items = append(items, node)
+		}
+	}
+	return items, nil
+}
+
 func GetCertificatesCountByStyle(uid string) (uint32, error) {
 	msg := bson.M{"style": uid, TimeDeleted: 0}
 	num, err1 := getCountByFilter(TableCertificate, msg)
@@ -145,8 +167,20 @@ func UpdateCertificateBase(uid, name, remark, operator string, tags []string) er
 	return err
 }
 
+func UpdateCertificateContact(uid, operator string, contact *proxy.ContactInfo) error {
+	msg := bson.M{"contact": contact, "operator": operator, TimeUpdated: time.Now()}
+	_, err := updateOne(TableCertificate, uid, msg)
+	return err
+}
+
 func UpdateCertificateCover(uid, cover, operator string) error {
 	msg := bson.M{"cover": cover, "operator": operator, TimeUpdated: time.Now().Unix()}
+	_, err := updateOne(TableCertificate, uid, msg)
+	return err
+}
+
+func UpdateCertificateStatus(uid, operator string, st uint8) error {
+	msg := bson.M{"status": st, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCertificate, uid, msg)
 	return err
 }

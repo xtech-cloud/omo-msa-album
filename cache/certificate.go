@@ -2,7 +2,9 @@ package cache
 
 import (
 	"errors"
+	pb "github.com/xtech-cloud/omo-msp-album/proto/album"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"omo.msa.album/proxy"
 	"omo.msa.album/proxy/nosql"
 	"time"
 )
@@ -10,35 +12,47 @@ import (
 // 文件夹或者包
 type CertificateInfo struct {
 	baseInfo
-	Remark string
-	Scene  string
-	Target string
-	Style  string
-	Status uint8
-	Type   uint8
-	SN     string
-	Image  string
-	Tags   []string
+	Remark  string
+	Scene   string
+	Target  string //目标实体
+	Style   string
+	Status  uint8
+	Type    uint8
+	SN      string
+	Image   string
+	Contact *proxy.ContactInfo
+	Tags    []string
+	Assets  []string
 }
 
-func (mine *cacheContext) CreateCertificate(name, remark, user, sn, scene, img, target, style string, tp uint8, tags []string) (*CertificateInfo, error) {
+func (mine *cacheContext) CreateCertificate(in *pb.ReqCertificateAdd) (*CertificateInfo, error) {
 	db := new(nosql.Certificate)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetCertificateNextID()
 	db.Created = time.Now().Unix()
-	db.Creator = user
-	db.Name = name
-	db.Remark = remark
-	db.Scene = scene
-	db.Image = img
-	db.Target = target
-	db.SN = sn
+	db.Creator = in.Operator
+	db.Name = in.Name
+	db.Remark = in.Remark
+	db.Scene = in.Scene
+	db.Image = in.Image
+	db.Target = in.Target
+	db.SN = in.Sn
 	db.Status = 0
-	db.Type = tp
-	db.Tags = tags
-	db.Style = style
+	db.Type = uint8(in.Type)
+	db.Tags = in.Tags
+	db.Style = in.Style
+	db.Assets = in.Assets
+	db.Contact = &proxy.ContactInfo{
+		Name:    in.Contact.Name,
+		Phone:   in.Contact.Phone,
+		Address: in.Contact.Address,
+		Remark:  in.Contact.Remark,
+	}
 	if db.Tags == nil {
 		db.Tags = make([]string, 0, 1)
+	}
+	if db.Assets == nil {
+		db.Assets = make([]string, 0, 1)
 	}
 
 	err := nosql.CreateCertificate(db)
@@ -80,16 +94,23 @@ func (mine *cacheContext) GetCertificatesByScene(uid string) []*CertificateInfo 
 	return list
 }
 
-func (mine *cacheContext) GetCertificatesByStyle(uid string) []*CertificateInfo {
+func (mine *cacheContext) GetCertificatesByStyle(scene, uid string) []*CertificateInfo {
 	list := make([]*CertificateInfo, 0, 20)
 	if len(uid) < 2 {
 		return nil
 	}
-	array, err := nosql.GetCertificatesByStyle(uid)
+	var dbs []*nosql.Certificate
+	var err error
+	if len(scene) > 2 {
+		dbs, err = nosql.GetCertificatesBySceneStyle(scene, uid)
+	} else {
+		dbs, err = nosql.GetCertificatesByStyle(uid)
+	}
+
 	if err != nil {
 		return list
 	}
-	for _, item := range array {
+	for _, item := range dbs {
 		info := new(CertificateInfo)
 		info.initInfo(item)
 		list = append(list, info)
@@ -131,8 +152,10 @@ func (mine *CertificateInfo) initInfo(db *nosql.Certificate) {
 	mine.Type = db.Type
 	mine.Status = db.Status
 	mine.SN = db.SN
+	mine.Contact = db.Contact
 	mine.Style = db.Style
 	mine.Tags = db.Tags
+	mine.Assets = db.Assets
 }
 
 func (mine *CertificateInfo) UpdateBase(name, remark, operator string, tags []string) error {
@@ -143,6 +166,34 @@ func (mine *CertificateInfo) UpdateBase(name, remark, operator string, tags []st
 		mine.Operator = operator
 		mine.Tags = tags
 		mine.Updated = time.Now().Unix()
+	}
+	return err
+}
+
+func (mine *CertificateInfo) UpdateContact(name, phone, addr, remark, operator string) error {
+	contact := &proxy.ContactInfo{
+		Name:    name,
+		Phone:   phone,
+		Remark:  remark,
+		Address: addr,
+	}
+	err := nosql.UpdateCertificateContact(mine.UID, operator, contact)
+	if err == nil {
+		mine.Operator = operator
+		mine.Contact = contact
+		mine.Updated = time.Now().Unix()
+	}
+	return err
+}
+
+func (mine *CertificateInfo) UpdateStatus(operator string, st uint8) error {
+	if mine.Status == st {
+		return nil
+	}
+	err := nosql.UpdateCertificateStatus(mine.UID, operator, st)
+	if err == nil {
+		mine.Status = st
+		mine.Operator = operator
 	}
 	return err
 }

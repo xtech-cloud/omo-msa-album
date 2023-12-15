@@ -12,6 +12,13 @@ type PhotocopySlot struct {
 	Remark     string `json:"remark" bson:"remark"`
 }
 
+type ContactInfo struct {
+	Name    string `json:"name" bson:"name"`
+	Phone   string `json:"phone" bson:"phone"`
+	Address string `json:"address" bson:"address"`
+	Remark  string `json:"remark" bson:"remark"`
+}
+
 type SheetPage struct {
 	UID    string `json:"uid" bson:"uid"`
 	Weight uint32 `json:"weight" bson:"weight"`

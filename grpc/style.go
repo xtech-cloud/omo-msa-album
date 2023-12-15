@@ -186,13 +186,13 @@ func (mine *StyleService) UpdateByFilter(ctx context.Context, in *pb.RequestUpda
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-	_, err := cache.Context().GetStyle(in.Uid)
+	info, err := cache.Context().GetStyle(in.Uid)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
 	}
-	if in.Field == "count" {
-
+	if in.Field == "cover" {
+		err = info.UpdateCover(in.Value, in.Operator)
 	}
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)

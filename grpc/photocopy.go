@@ -55,6 +55,8 @@ func switchStyleSlots(list []proxy.StyleSlot) []*pb.StyleSlot {
 		tmp.Y = slot.Y
 		tmp.Width = slot.Width
 		tmp.Height = slot.Height
+		tmp.Bold = slot.Bold
+		tmp.Size = slot.Size
 		arr = append(arr, tmp)
 	}
 	return arr

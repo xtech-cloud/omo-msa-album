@@ -194,6 +194,18 @@ func (mine *CertificateStyleInfo) updateCount(operator string, num uint32) error
 	return err
 }
 
+func (mine *CertificateStyleInfo) UpdateCover(cover, operator string) error {
+	if mine.Cover == cover {
+		return nil
+	}
+	err := nosql.UpdateCertificateStyleCover(mine.UID, cover, operator)
+	if err == nil {
+		mine.Cover = cover
+		mine.Operator = operator
+	}
+	return err
+}
+
 func (mine *CertificateStyleInfo) GetSN(operator string) string {
 	err := mine.updateCount(operator, mine.Count+1)
 	if err != nil {

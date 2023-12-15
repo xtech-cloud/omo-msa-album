@@ -12,7 +12,7 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tidwall/gjson v1.15.0
-	github.com/xtech-cloud/omo-msp-album v1.2.3
+	github.com/xtech-cloud/omo-msp-album v1.2.5
 	github.com/xtech-cloud/omo-msp-status v1.0.3
 	go.mongodb.org/mongo-driver v1.12.1
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
