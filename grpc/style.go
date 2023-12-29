@@ -28,6 +28,8 @@ func switchStyle(info *cache.CertificateStyleInfo) *pb.StyleInfo {
 	tmp.Type = uint32(info.Type)
 	tmp.Tags = info.Tags
 	tmp.Scenes = info.Scenes
+	tmp.Width = uint32(info.Width)
+	tmp.Height = uint32(info.Height)
 	tmp.Slots = switchStyleSlots(info.Slots)
 	return tmp
 }
@@ -51,7 +53,7 @@ func (mine *StyleService) AddOne(ctx context.Context, in *pb.ReqStyleAdd, out *p
 			Size:   slot.Size,
 		})
 	}
-	info, err := cache.Context().CreateStyle(in.Name, in.Remark, in.Operator, in.Cover, in.Background, in.Prefix, uint8(in.Type), in.Tags, in.Scenes, slots)
+	info, err := cache.Context().CreateStyle(in, slots)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
@@ -105,7 +107,7 @@ func (mine *StyleService) GetStatistic(ctx context.Context, in *pb.RequestFilter
 	path := "style.getStatistic"
 	inLog(path, in)
 	if len(in.Field) < 1 {
-		out.Status = outError(path, "the user is empty ", pbstatus.ResultStatus_Empty)
+		out.Status = outError(path, "the field is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
 
@@ -118,6 +120,8 @@ func (mine *StyleService) GetStatistic(ctx context.Context, in *pb.RequestFilter
 		out.Key = info.GetSN(in.Operator)
 	} else if in.Field == "count" {
 		out.Count = cache.Context().GetCertificatesCountByStyle(in.Value)
+	} else if in.Field == "scene_count" {
+		out.Count = cache.Context().GetCertificatesCountBySceneStyle(in.Owner, in.Value)
 	}
 	out.Status = outLog(path, out)
 	return nil

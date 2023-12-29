@@ -27,6 +27,8 @@ type CertificateStyle struct {
 	Prefix string `json:"prefix" bson:"prefix"`
 	Count  uint32 `json:"count" bson:"count"`
 	Year   int    `json:"year" bson:"year"`
+	Width  int    `json:"width" bson:"width"`
+	Height int    `json:"height" bson:"height"`
 
 	Background string            `json:"background" bson:"background"`
 	Tags       []string          `json:"tags" bson:"tags"`
@@ -78,8 +80,9 @@ func GetAllCertificateStyles() ([]*CertificateStyle, error) {
 	return items, nil
 }
 
-func UpdateCertificateStyleBase(uid, operator, name, remark, bg string, tags, scenes []string, slots []proxy.StyleSlot, tp uint8) error {
-	msg := bson.M{"name": name, "remark": remark, "background": bg, "tags": tags, "scenes": scenes, "slots": slots, "type": tp, "operator": operator, TimeUpdated: time.Now().Unix()}
+func UpdateCertificateStyleBase(uid, operator, name, remark, bg string, w, h int, tags, scenes []string, slots []proxy.StyleSlot, tp uint8) error {
+	msg := bson.M{"name": name, "remark": remark, "background": bg, "tags": tags, "width": w, "height": h,
+		"scenes": scenes, "slots": slots, "type": tp, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCertificateStyle, uid, msg)
 	return err
 }

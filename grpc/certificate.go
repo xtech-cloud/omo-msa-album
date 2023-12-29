@@ -156,6 +156,8 @@ func (mine *CertificateService) GetListByFilter(ctx context.Context, in *pb.Requ
 		list = cache.Context().GetCertificatesByScene(in.Value)
 	} else if in.Field == "style" {
 		list = cache.Context().GetCertificatesByStyle(in.Owner, in.Value)
+	} else if in.Field == "contact" {
+		list = cache.Context().GetCertificateByContact(in.Owner, in.Value)
 	} else {
 		err = errors.New("the key not defined")
 	}
@@ -190,7 +192,8 @@ func (mine *CertificateService) UpdateByFilter(ctx context.Context, in *pb.Reque
 		} else {
 			er = errors.New("the param count error")
 		}
-
+	} else if in.Field == "target" {
+		er = info.UpdateTarget(in.Value, in.Operator)
 	}
 	if er != nil {
 		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_DBException)

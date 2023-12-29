@@ -133,8 +133,36 @@ func GetCertificatesBySceneStyle(scene, style string) ([]*Certificate, error) {
 	return items, nil
 }
 
+func GetCertificatesByContact(phone, name string) ([]*Certificate, error) {
+	msg := bson.M{"contact.phone": phone, "contact.name": name, TimeDeleted: 0}
+	cursor, err1 := findMany(TableCertificate, msg, 0)
+	if err1 != nil {
+		return nil, err1
+	}
+	defer cursor.Close(context.Background())
+	var items = make([]*Certificate, 0, 50)
+	for cursor.Next(context.Background()) {
+		var node = new(Certificate)
+		if err := cursor.Decode(node); err != nil {
+			return nil, err
+		} else {
+			items = append(items, node)
+		}
+	}
+	return items, nil
+}
+
 func GetCertificatesCountByStyle(uid string) (uint32, error) {
 	msg := bson.M{"style": uid, TimeDeleted: 0}
+	num, err1 := getCountByFilter(TableCertificate, msg)
+	if err1 != nil {
+		return 0, err1
+	}
+	return uint32(num), nil
+}
+
+func GetCertificatesCountBySceneStyle(scene, uid string) (uint32, error) {
+	msg := bson.M{"scene": scene, "style": uid, TimeDeleted: 0}
 	num, err1 := getCountByFilter(TableCertificate, msg)
 	if err1 != nil {
 		return 0, err1
@@ -175,6 +203,12 @@ func UpdateCertificateContact(uid, operator string, contact *proxy.ContactInfo) 
 
 func UpdateCertificateCover(uid, cover, operator string) error {
 	msg := bson.M{"cover": cover, "operator": operator, TimeUpdated: time.Now().Unix()}
+	_, err := updateOne(TableCertificate, uid, msg)
+	return err
+}
+
+func UpdateCertificateTarget(uid, entity, operator string) error {
+	msg := bson.M{"target": entity, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCertificate, uid, msg)
 	return err
 }

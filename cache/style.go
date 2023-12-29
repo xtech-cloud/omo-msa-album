@@ -30,29 +30,34 @@ type CertificateStyleInfo struct {
 	Cover      string
 	Background string
 	Prefix     string
+	Width      int
+	Height     int
 
 	Tags   []string
 	Scenes []string
 	Slots  []proxy.StyleSlot
 }
 
-func (mine *cacheContext) CreateStyle(name, remark, user, cover, bg, prefix string, kind uint8, tags, scenes []string, slots []proxy.StyleSlot) (*CertificateStyleInfo, error) {
+func (mine *cacheContext) CreateStyle(in *pb.ReqStyleAdd, slots []proxy.StyleSlot) (*CertificateStyleInfo, error) {
 	db := new(nosql.CertificateStyle)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetCertificateStyleNextID()
 	db.Created = time.Now().Unix()
 	db.CreatedTime = time.Now()
-	db.Creator = user
-	db.Name = name
-	db.Remark = remark
-	db.Type = kind
-	db.Tags = tags
-	db.Cover = cover
-	db.Prefix = prefix
-	db.Scenes = scenes
-	db.Background = bg
+	db.Creator = in.Operator
+	db.Name = in.Name
+	db.Remark = in.Remark
+	db.Type = uint8(in.Type)
+	db.Tags = in.Tags
+	db.Cover = in.Cover
+	db.Prefix = in.Prefix
+	db.Scenes = in.Scenes
+	db.Background = in.Background
 	db.Slots = slots
 	db.Count = 0
+	db.Width = int(in.Width)
+	db.Height = int(in.Height)
+	db.Year = time.Now().Year()
 	if db.Slots == nil {
 		db.Slots = make([]proxy.StyleSlot, 0, 1)
 	}
@@ -90,6 +95,17 @@ func (mine *cacheContext) GetCertificatesCountByStyle(uid string) uint32 {
 		return 0
 	}
 	num, err := nosql.GetCertificatesCountByStyle(uid)
+	if err != nil {
+		return 0
+	}
+	return num
+}
+
+func (mine *cacheContext) GetCertificatesCountBySceneStyle(scene, uid string) uint32 {
+	if len(uid) < 2 {
+		return 0
+	}
+	num, err := nosql.GetCertificatesCountBySceneStyle(scene, uid)
 	if err != nil {
 		return 0
 	}
@@ -148,6 +164,9 @@ func (mine *CertificateStyleInfo) initInfo(db *nosql.CertificateStyle) {
 	mine.Scenes = db.Scenes
 	mine.Slots = db.Slots
 	mine.Count = db.Count
+	mine.Year = db.Year
+	mine.Width = db.Width
+	mine.Height = db.Height
 	if mine.Slots == nil {
 		mine.Slots = make([]proxy.StyleSlot, 0, 1)
 	}
@@ -166,7 +185,7 @@ func (mine *CertificateStyleInfo) UpdateBase(operator string, in *pb.ReqStyleUpd
 			Size:   slot.Size,
 		})
 	}
-	err := nosql.UpdateCertificateStyleBase(mine.UID, operator, in.Name, in.Remark, in.Background, in.Tags, in.Scenes, slots, uint8(in.Type))
+	err := nosql.UpdateCertificateStyleBase(mine.UID, operator, in.Name, in.Remark, in.Background, int(in.Width), int(in.Height), in.Tags, in.Scenes, slots, uint8(in.Type))
 	if err == nil {
 		mine.Name = in.Name
 		mine.Remark = in.Remark
@@ -175,20 +194,22 @@ func (mine *CertificateStyleInfo) UpdateBase(operator string, in *pb.ReqStyleUpd
 		mine.Tags = in.Tags
 		mine.Scenes = in.Scenes
 		mine.Slots = slots
+		mine.Width = int(in.Width)
+		mine.Height = int(in.Height)
 		mine.Type = StyleType(in.Type)
 	}
 	return err
 }
 
 func (mine *CertificateStyleInfo) updateCount(operator string, num uint32) error {
-	y := time.Now().Year()
-	if mine.Year != y {
+	year := time.Now().Year()
+	if mine.Year != year {
 		num = 1
 	}
-	err := nosql.UpdateCertificateStyleCount(mine.UID, operator, y, int(num))
+	err := nosql.UpdateCertificateStyleCount(mine.UID, operator, year, int(num))
 	if err == nil {
 		mine.Count = num
-		mine.Year = y
+		mine.Year = year
 		mine.Operator = operator
 	}
 	return err
@@ -213,7 +234,11 @@ func (mine *CertificateStyleInfo) GetSN(operator string) string {
 	}
 	tp := StringPad(strconv.Itoa(int(mine.Type)), 3, "0", PadLeft)
 	s := StringPad(strconv.Itoa(int(mine.Count)), 5, "0", PadLeft)
-	return fmt.Sprintf("%s-%s-%d-%s", mine.Prefix, tp, mine.Year, s)
+	prefix := mine.Prefix
+	if prefix == "" {
+		prefix = "SCCD"
+	}
+	return fmt.Sprintf("%s-%s-%d-%s", prefix, tp, mine.Year, s)
 }
 
 func (mine *CertificateStyleInfo) Remove(operator string) error {

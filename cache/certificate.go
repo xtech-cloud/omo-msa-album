@@ -118,6 +118,25 @@ func (mine *cacheContext) GetCertificatesByStyle(scene, uid string) []*Certifica
 	return list
 }
 
+func (mine *cacheContext) GetCertificateByContact(phone, name string) []*CertificateInfo {
+	list := make([]*CertificateInfo, 0, 5)
+	if len(phone) < 2 || len(name) < 2 {
+		return list
+	}
+	dbs, err := nosql.GetCertificatesByContact(phone, name)
+	if err != nil {
+		return list
+	}
+	for _, item := range dbs {
+		if len(item.Target) < 2 {
+			info := new(CertificateInfo)
+			info.initInfo(item)
+			list = append(list, info)
+		}
+	}
+	return list
+}
+
 func (mine *cacheContext) GetCertificatesByTarget(uid string) []*CertificateInfo {
 	list := make([]*CertificateInfo, 0, 20)
 	if len(uid) < 2 {
@@ -171,6 +190,9 @@ func (mine *CertificateInfo) UpdateBase(name, remark, operator string, tags []st
 }
 
 func (mine *CertificateInfo) UpdateContact(name, phone, addr, remark, operator string) error {
+	if len(mine.Target) > 2 {
+		return errors.New("the certificate had send one target")
+	}
 	contact := &proxy.ContactInfo{
 		Name:    name,
 		Phone:   phone,
@@ -193,6 +215,18 @@ func (mine *CertificateInfo) UpdateStatus(operator string, st uint8) error {
 	err := nosql.UpdateCertificateStatus(mine.UID, operator, st)
 	if err == nil {
 		mine.Status = st
+		mine.Operator = operator
+	}
+	return err
+}
+
+func (mine *CertificateInfo) UpdateTarget(operator, target string) error {
+	if mine.Target == target {
+		return nil
+	}
+	err := nosql.UpdateCertificateTarget(mine.UID, target, operator)
+	if err == nil {
+		mine.Target = target
 		mine.Operator = operator
 	}
 	return err
