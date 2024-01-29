@@ -149,6 +149,17 @@ func (mine *cacheContext) GetStylesByScene(scene string) []*CertificateStyleInfo
 	return list
 }
 
+func (mine *cacheContext) GetStylesByArray(arr []string) []*CertificateStyleInfo {
+	list := make([]*CertificateStyleInfo, 0, len(arr))
+	for _, key := range arr {
+		item, _ := mine.GetStyle(key)
+		if item != nil {
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
 func (mine *CertificateStyleInfo) initInfo(db *nosql.CertificateStyle) {
 	mine.Name = db.Name
 	mine.UID = db.UID.Hex()

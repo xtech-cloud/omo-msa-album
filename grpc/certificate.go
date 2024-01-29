@@ -158,6 +158,8 @@ func (mine *CertificateService) GetListByFilter(ctx context.Context, in *pb.Requ
 		list = cache.Context().GetCertificatesByStyle(in.Owner, in.Value)
 	} else if in.Field == "contact" {
 		list = cache.Context().GetCertificateByContact(in.Owner, in.Value)
+	} else if in.Field == "array" {
+		list = cache.Context().GetCertificateByArray(in.Values)
 	} else {
 		err = errors.New("the key not defined")
 	}

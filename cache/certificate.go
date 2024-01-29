@@ -137,6 +137,17 @@ func (mine *cacheContext) GetCertificateByContact(phone, name string) []*Certifi
 	return list
 }
 
+func (mine *cacheContext) GetCertificateByArray(arr []string) []*CertificateInfo {
+	list := make([]*CertificateInfo, 0, len(arr))
+	for _, key := range arr {
+		info, _ := mine.GetCertificate(key)
+		if info != nil {
+			list = append(list, info)
+		}
+	}
+	return list
+}
+
 func (mine *cacheContext) GetCertificatesByTarget(uid string) []*CertificateInfo {
 	list := make([]*CertificateInfo, 0, 20)
 	if len(uid) < 2 {

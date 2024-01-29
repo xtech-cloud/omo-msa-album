@@ -168,6 +168,8 @@ func (mine *StyleService) GetListByFilter(ctx context.Context, in *pb.RequestFil
 		out.Total, out.Pages, list = cache.Context().GetStyles(in.Page, in.Number)
 	} else if in.Field == "scene" {
 		list = cache.Context().GetStylesByScene(in.Value)
+	} else if in.Field == "array" {
+		list = cache.Context().GetStylesByArray(in.Values)
 	} else {
 		err = errors.New("the key not defined")
 	}
