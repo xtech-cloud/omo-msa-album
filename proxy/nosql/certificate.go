@@ -17,18 +17,20 @@ type Certificate struct {
 	Creator  string             `json:"creator" bson:"creator"`
 	Operator string             `json:"operator" bson:"operator"`
 
-	Name    string             `json:"name" bson:"name"`
-	Remark  string             `json:"remark" bson:"remark"`
-	SN      string             `json:"sn" bson:"sn"`
-	Image   string             `json:"image" bson:"image"`
-	Type    uint8              `json:"type" bson:"type"`
-	Status  uint8              `json:"status" bson:"status"`
-	Style   string             `json:"style" bson:"style"`
-	Target  string             `json:"target" bson:"target"`
-	Scene   string             `json:"scene" bson:"scene"`
-	Contact *proxy.ContactInfo `json:"contact" bson:"contact"`
-	Tags    []string           `json:"tags" bson:"tags"`
-	Assets  []string           `json:"assets" bson:"assets"`
+	Name     string             `json:"name" bson:"name"`
+	Remark   string             `json:"remark" bson:"remark"`
+	SN       string             `json:"sn" bson:"sn"`
+	Image    string             `json:"image" bson:"image"`
+	Type     uint8              `json:"type" bson:"type"`
+	Status   uint8              `json:"status" bson:"status"`
+	Style    string             `json:"style" bson:"style"`
+	Quote    string             `json:"quote" bson:"quote"`
+	EndStamp int64              `json:"end_stamp" bson:"end_stamp"`
+	Target   string             `json:"target" bson:"target"`
+	Scene    string             `json:"scene" bson:"scene"`
+	Contact  *proxy.ContactInfo `json:"contact" bson:"contact"`
+	Tags     []string           `json:"tags" bson:"tags"`
+	Assets   []string           `json:"assets" bson:"assets"`
 }
 
 func CreateCertificate(info *Certificate) error {

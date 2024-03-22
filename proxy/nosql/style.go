@@ -30,10 +30,11 @@ type CertificateStyle struct {
 	Width  int    `json:"width" bson:"width"`
 	Height int    `json:"height" bson:"height"`
 
-	Background string            `json:"background" bson:"background"`
-	Tags       []string          `json:"tags" bson:"tags"`
-	Scenes     []string          `json:"scenes" bson:"scenes"`
-	Slots      []proxy.StyleSlot `json:"slots" bson:"slots"`
+	Background string              `json:"background" bson:"background"`
+	Tags       []string            `json:"tags" bson:"tags"`
+	Scenes     []string            `json:"scenes" bson:"scenes"`
+	Slots      []proxy.StyleSlot   `json:"slots" bson:"slots"`
+	Relates    []proxy.StyleRelate `json:"relates" bson:"relates"`
 }
 
 func CreateCertificateStyle(info *CertificateStyle) error {
@@ -101,6 +102,12 @@ func UpdateCertificateStyleCover(uid, cover, operator string) error {
 
 func UpdateCertificateStyleSlots(uid, operator string, slots []proxy.StyleSlot) error {
 	msg := bson.M{"slots": slots, "operator": operator, TimeUpdated: time.Now().Unix()}
+	_, err := updateOne(TableCertificateStyle, uid, msg)
+	return err
+}
+
+func UpdateCertificateStyleRelates(uid, operator string, arr []proxy.StyleRelate) error {
+	msg := bson.M{"relates": arr, "operator": operator, TimeUpdated: time.Now().Unix()}
 	_, err := updateOne(TableCertificateStyle, uid, msg)
 	return err
 }

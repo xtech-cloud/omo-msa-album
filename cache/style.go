@@ -20,7 +20,7 @@ const (
 
 type StyleType uint8
 
-// 影集样式或者模板
+// 证书模板
 type CertificateStyleInfo struct {
 	baseInfo
 	Count      uint32
@@ -30,12 +30,14 @@ type CertificateStyleInfo struct {
 	Cover      string
 	Background string
 	Prefix     string
-	Width      int
-	Height     int
 
-	Tags   []string
-	Scenes []string
-	Slots  []proxy.StyleSlot
+	Width  int
+	Height int
+
+	Tags    []string
+	Scenes  []string
+	Relates []proxy.StyleRelate //关联的实体
+	Slots   []proxy.StyleSlot
 }
 
 func (mine *cacheContext) CreateStyle(in *pb.ReqStyleAdd, slots []proxy.StyleSlot) (*CertificateStyleInfo, error) {
@@ -58,6 +60,7 @@ func (mine *cacheContext) CreateStyle(in *pb.ReqStyleAdd, slots []proxy.StyleSlo
 	db.Width = int(in.Width)
 	db.Height = int(in.Height)
 	db.Year = time.Now().Year()
+	db.Relates = make([]proxy.StyleRelate, 0, 1)
 	if db.Slots == nil {
 		db.Slots = make([]proxy.StyleSlot, 0, 1)
 	}
@@ -181,6 +184,10 @@ func (mine *CertificateStyleInfo) initInfo(db *nosql.CertificateStyle) {
 	if mine.Slots == nil {
 		mine.Slots = make([]proxy.StyleSlot, 0, 1)
 	}
+	mine.Relates = db.Relates
+	if mine.Relates == nil {
+		mine.Relates = make([]proxy.StyleRelate, 0, 1)
+	}
 }
 
 func (mine *CertificateStyleInfo) UpdateBase(operator string, in *pb.ReqStyleUpdate) error {
@@ -238,6 +245,40 @@ func (mine *CertificateStyleInfo) UpdateCover(cover, operator string) error {
 	return err
 }
 
+func (mine *CertificateStyleInfo) AppendRelate(entity, operator string, way uint32) error {
+	arr := make([]proxy.StyleRelate, 0, len(mine.Relates)+1)
+	arr = append(arr, mine.Relates...)
+	add := true
+	for i, relate := range arr {
+		if relate.Entity == entity {
+			if way == 0 {
+				add = false
+				if i == len(arr)-1 {
+					arr = append(arr[:i])
+				} else {
+					arr = append(arr[:i], arr[i+1:]...)
+				}
+			} else {
+				if uint32(relate.Way) == way {
+					return nil
+				}
+				add = false
+				relate.Way = uint8(way)
+			}
+			break
+		}
+	}
+	if add {
+		arr = append(arr, proxy.StyleRelate{Entity: entity, Way: uint8(way)})
+	}
+	err := nosql.UpdateCertificateStyleRelates(mine.UID, operator, arr)
+	if err == nil {
+		mine.Relates = arr
+		mine.Operator = operator
+	}
+	return err
+}
+
 func (mine *CertificateStyleInfo) GetSN(operator string) string {
 	err := mine.updateCount(operator, mine.Count+1)
 	if err != nil {
@@ -254,4 +295,48 @@ func (mine *CertificateStyleInfo) GetSN(operator string) string {
 
 func (mine *CertificateStyleInfo) Remove(operator string) error {
 	return nosql.RemoveCertificateStyle(mine.UID, operator)
+}
+
+func (mine *CertificateStyleInfo) CreateCertificate(scene, quote, operator string, end int64) (*CertificateInfo, error) {
+	db := new(nosql.Certificate)
+	db.UID = primitive.NewObjectID()
+	db.ID = nosql.GetCertificateNextID()
+	db.Created = time.Now().Unix()
+	db.Creator = operator
+	db.Name = mine.Name
+	db.Remark = mine.Remark
+	db.Scene = scene
+	db.Image = ""
+	db.Target = ""
+	db.Quote = quote
+	db.SN = mine.GetSN(operator)
+	db.Status = 0
+	db.Type = uint8(mine.Type)
+	db.Tags = mine.Tags
+	db.Style = mine.UID
+	db.EndStamp = end
+	db.Assets = make([]string, 0, 1)
+	db.Contact = nil
+	if db.Tags == nil {
+		db.Tags = make([]string, 0, 1)
+	}
+
+	err := nosql.CreateCertificate(db)
+	if err != nil {
+		return nil, err
+	}
+	info := new(CertificateInfo)
+	info.initInfo(db)
+	return info, nil
+}
+
+func (mine *CertificateStyleInfo) Batch(scene, quote, operator string, num uint32, end int64) []*CertificateInfo {
+	list := make([]*CertificateInfo, 0, num)
+	for i := 0; i < int(num); i += 1 {
+		info, er := mine.CreateCertificate(scene, quote, operator, end)
+		if er == nil {
+			list = append(list, info)
+		}
+	}
+	return list
 }

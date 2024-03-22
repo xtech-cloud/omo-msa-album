@@ -62,6 +62,17 @@ func switchStyleSlots(list []proxy.StyleSlot) []*pb.StyleSlot {
 	return arr
 }
 
+func switchStyleRelates(list []proxy.StyleRelate) []*pb.StyleRelate {
+	arr := make([]*pb.StyleRelate, 0, len(list))
+	for _, slot := range list {
+		tmp := new(pb.StyleRelate)
+		tmp.Entity = slot.Entity
+		tmp.Way = uint32(slot.Way)
+		arr = append(arr, tmp)
+	}
+	return arr
+}
+
 func (mine *PhotocopyService) AddOne(ctx context.Context, in *pb.ReqPhotocopyAdd, out *pb.ReplyPhotocopyInfo) error {
 	path := "photocopy.add"
 	inLog(path, in)

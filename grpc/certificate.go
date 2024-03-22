@@ -160,6 +160,13 @@ func (mine *CertificateService) GetListByFilter(ctx context.Context, in *pb.Requ
 		list = cache.Context().GetCertificateByContact(in.Owner, in.Value)
 	} else if in.Field == "array" {
 		list = cache.Context().GetCertificateByArray(in.Values)
+	} else if in.Field == "batch" {
+		if len(in.Values) == 3 {
+			num := parseStringToInt(in.Values[0])
+			quote := in.Values[1]
+			end := parseStringToInt64(in.Values[2])
+			list, err = cache.Context().BatchCertificate(in.Value, in.Owner, quote, in.Operator, uint32(num), end)
+		}
 	} else {
 		err = errors.New("the key not defined")
 	}

@@ -11,18 +11,21 @@ import (
 
 // 文件夹或者包
 type CertificateInfo struct {
+	Status uint8
+	Type   uint8
 	baseInfo
-	Remark  string
-	Scene   string
-	Target  string //目标实体
-	Style   string
-	Status  uint8
-	Type    uint8
-	SN      string
-	Image   string
-	Contact *proxy.ContactInfo
-	Tags    []string
-	Assets  []string
+	Remark string
+	Scene  string
+	Target string //目标对象
+	Style  string
+	SN     string
+	Image  string
+	Quote  string //引用的实体
+
+	EndStamp int64 //截至时间
+	Contact  *proxy.ContactInfo
+	Tags     []string
+	Assets   []string
 }
 
 func (mine *cacheContext) CreateCertificate(in *pb.ReqCertificateAdd) (*CertificateInfo, error) {
@@ -148,6 +151,14 @@ func (mine *cacheContext) GetCertificateByArray(arr []string) []*CertificateInfo
 	return list
 }
 
+func (mine *cacheContext) BatchCertificate(uid, scene, quote, operator string, num uint32, end int64) ([]*CertificateInfo, error) {
+	info, err := mine.GetStyle(uid)
+	if err != nil {
+		return nil, err
+	}
+	return info.Batch(scene, quote, operator, num, end), nil
+}
+
 func (mine *cacheContext) GetCertificatesByTarget(uid string) []*CertificateInfo {
 	list := make([]*CertificateInfo, 0, 20)
 	if len(uid) < 2 {
@@ -182,6 +193,8 @@ func (mine *CertificateInfo) initInfo(db *nosql.Certificate) {
 	mine.Type = db.Type
 	mine.Status = db.Status
 	mine.SN = db.SN
+	mine.Quote = db.Quote
+	mine.EndStamp = db.EndStamp
 	mine.Contact = db.Contact
 	mine.Style = db.Style
 	mine.Tags = db.Tags

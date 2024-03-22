@@ -36,6 +36,11 @@ type FolderContent struct {
 	UID  string `json:"uid" bson:"uid"`   //资源UID
 }
 
+type StyleRelate struct {
+	Entity string `json:"entity" bson:"entity"` //关联的实体
+	Way    uint8  `json:"way" bson:"way"`       //获取的路径
+}
+
 type PageContents struct {
 	Slot     uint32   `json:"slot" bson:"slot"`         //构图的位置
 	Type     uint32   `json:"type" bson:"type"`         //资源类型0=素材， 1=实体

@@ -31,6 +31,7 @@ func switchStyle(info *cache.CertificateStyleInfo) *pb.StyleInfo {
 	tmp.Width = uint32(info.Width)
 	tmp.Height = uint32(info.Height)
 	tmp.Slots = switchStyleSlots(info.Slots)
+	tmp.Relates = switchStyleRelates(info.Relates)
 	return tmp
 }
 
@@ -199,6 +200,12 @@ func (mine *StyleService) UpdateByFilter(ctx context.Context, in *pb.RequestUpda
 	}
 	if in.Field == "cover" {
 		err = info.UpdateCover(in.Value, in.Operator)
+	} else if in.Field == "relate" {
+		tp := 0
+		if len(in.Values) > 0 {
+			tp = parseStringToInt(in.Values[0])
+		}
+		err = info.AppendRelate(in.Value, in.Operator, uint32(tp))
 	}
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
