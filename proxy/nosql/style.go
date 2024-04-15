@@ -63,6 +63,20 @@ func GetCertificateStyle(uid string) (*CertificateStyle, error) {
 	return model, nil
 }
 
+func GetCertificateStyleByEntity(uid string) (*CertificateStyle, error) {
+	filter := bson.M{"relates.entity": uid, TimeDeleted: 0}
+	result, err := findOneBy(TableCertificateStyle, filter)
+	if err != nil {
+		return nil, err
+	}
+	model := new(CertificateStyle)
+	err1 := result.Decode(model)
+	if err1 != nil {
+		return nil, err1
+	}
+	return model, nil
+}
+
 func GetAllCertificateStyles() ([]*CertificateStyle, error) {
 	cursor, err1 := findAllEnable(TableCertificateStyle, 0)
 	if err1 != nil {

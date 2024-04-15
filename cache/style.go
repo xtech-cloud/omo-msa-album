@@ -93,6 +93,19 @@ func (mine *cacheContext) GetStyle(uid string) (*CertificateStyleInfo, error) {
 	return info, nil
 }
 
+func (mine *cacheContext) GetStyleByEntity(uid string) (*CertificateStyleInfo, error) {
+	if len(uid) < 2 {
+		return nil, errors.New("the entity uid is empty")
+	}
+	db, err := nosql.GetCertificateStyleByEntity(uid)
+	if err != nil {
+		return nil, err
+	}
+	info := new(CertificateStyleInfo)
+	info.initInfo(db)
+	return info, nil
+}
+
 func (mine *cacheContext) GetCertificatesCountByStyle(uid string) uint32 {
 	if len(uid) < 2 {
 		return 0

@@ -67,11 +67,18 @@ func (mine *StyleService) AddOne(ctx context.Context, in *pb.ReqStyleAdd, out *p
 func (mine *StyleService) GetOne(ctx context.Context, in *pb.RequestInfo, out *pb.ReplyStyleInfo) error {
 	path := "style.getOne"
 	inLog(path, in)
-	if len(in.Uid) < 1 {
+	if len(in.Flag) < 1 && len(in.Uid) < 1 {
 		out.Status = outError(path, "the uid is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
-	info, er := cache.Context().GetStyle(in.Uid)
+	var er error
+	var info *cache.CertificateStyleInfo
+	if len(in.Flag) < 1 {
+		info, er = cache.Context().GetStyle(in.Uid)
+	} else if in.Flag == "entity" {
+		info, er = cache.Context().GetStyleByEntity(in.Uid)
+	}
+
 	if er != nil {
 		out.Status = outError(path, er.Error(), pbstatus.ResultStatus_NotExisted)
 		return nil
