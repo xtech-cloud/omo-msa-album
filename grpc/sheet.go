@@ -83,6 +83,12 @@ func (mine *SheetService) GetStatistic(ctx context.Context, in *pb.RequestFilter
 		out.Status = outError(path, "the user is empty ", pbstatus.ResultStatus_Empty)
 		return nil
 	}
+	if in.Field == "count" {
+		info, _ := cache.Context().GetSheet(in.Value)
+		if info != nil {
+			out.Count = info.GetAssetCount()
+		}
+	}
 
 	out.Status = outLog(path, out)
 	return nil

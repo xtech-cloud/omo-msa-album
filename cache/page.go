@@ -2,6 +2,7 @@ package cache
 
 import (
 	"errors"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"omo.msa.album/proxy"
 	"omo.msa.album/proxy/nosql"
@@ -162,6 +163,10 @@ func (mine *PageInfo) UpdateBase(name, remark, operator string, life uint32) err
 }
 
 func (mine *PageInfo) Remove(operator string) error {
+	sheets := cacheCtx.GetSheetsByPage(mine.UID)
+	if len(sheets) > 0 {
+		return errors.New(fmt.Sprintf("the page had used by sheets count = %d", len(sheets)))
+	}
 	return nosql.RemovePage(mine.UID, operator)
 }
 

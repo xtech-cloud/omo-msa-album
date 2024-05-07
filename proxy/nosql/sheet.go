@@ -96,6 +96,25 @@ func GetSheetsByTarget(target string) ([]*Sheet, error) {
 	return items, nil
 }
 
+func GetSheetsByPage(page string) ([]*Sheet, error) {
+	msg := bson.M{"pages.uid": page, TimeDeleted: 0}
+	cursor, err1 := findMany(TableSheet, msg, 0)
+	if err1 != nil {
+		return nil, err1
+	}
+	defer cursor.Close(context.Background())
+	var items = make([]*Sheet, 0, 50)
+	for cursor.Next(context.Background()) {
+		var node = new(Sheet)
+		if err := cursor.Decode(node); err != nil {
+			return nil, err
+		} else {
+			items = append(items, node)
+		}
+	}
+	return items, nil
+}
+
 func GetAllSheets() ([]*Sheet, error) {
 	cursor, err1 := findAllEnable(TableSheet, 0)
 	if err1 != nil {

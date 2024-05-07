@@ -77,7 +77,21 @@ func (mine *cacheContext) GetSheetsByOwner(uid string) []*SheetInfo {
 }
 
 func (mine *cacheContext) GetSheetsByTarget(uid string) []*SheetInfo {
-	array, err := nosql.GetSheetsByOwner(uid)
+	array, err := nosql.GetSheetsByTarget(uid)
+	if err != nil {
+		return make([]*SheetInfo, 0, 0)
+	}
+	list := make([]*SheetInfo, 0, len(array))
+	for _, item := range array {
+		info := new(SheetInfo)
+		info.initInfo(item)
+		list = append(list, info)
+	}
+	return list
+}
+
+func (mine *cacheContext) GetSheetsByPage(uid string) []*SheetInfo {
+	array, err := nosql.GetSheetsByPage(uid)
 	if err != nil {
 		return make([]*SheetInfo, 0, 0)
 	}
@@ -139,6 +153,19 @@ func (mine *SheetInfo) UpdateTarget(tar, operator string) error {
 		mine.Updated = time.Now().Unix()
 	}
 	return err
+}
+
+func (mine *SheetInfo) GetAssetCount() uint32 {
+	num := 0
+	for _, page := range mine.Pages {
+		tmp, _ := cacheCtx.GetPage(page.UID)
+		if tmp != nil {
+			for _, content := range tmp.Contents {
+				num += len(content.List)
+			}
+		}
+	}
+	return uint32(num)
 }
 
 func (mine *SheetInfo) Remove(operator string) error {
