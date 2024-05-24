@@ -1,5 +1,10 @@
 package proxy
 
+type DurationInfo struct {
+	Start int64 `json:"start" bson:"start"`
+	Stop  int64 `json:"stop" bson:"stop"`
+}
+
 type PhotocopySlot struct {
 	// 第几页
 	Page uint8 `json:"page" bson:"page"`

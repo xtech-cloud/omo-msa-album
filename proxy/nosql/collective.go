@@ -4,6 +4,7 @@ import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"omo.msa.album/proxy"
 	"time"
 )
 
@@ -19,16 +20,17 @@ type Collective struct {
 	Creator     string             `json:"creator" bson:"creator"`
 	Operator    string             `json:"operator" bson:"operator"`
 
-	Status   uint8    `json:"status" bson:"status"`
-	Name     string   `json:"name" bson:"name"`
-	Remark   string   `json:"remark" bson:"remark"`
-	MaxCount uint16   `json:"max" bson:"max"`
-	Type     uint8    `json:"type" bson:"type"`
-	Group    string   `json:"group" bson:"group"`
-	Size     uint64   `json:"size" bson:"size"`
-	Cover    string   `json:"cover" bson:"cover"`
-	Assets   []string `json:"assets" bson:"assets"`
-	Tags     []string `json:"tags" bson:"tags"`
+	Status   uint8              `json:"status" bson:"status"`
+	Name     string             `json:"name" bson:"name"`
+	Remark   string             `json:"remark" bson:"remark"`
+	MaxCount uint16             `json:"max" bson:"max"`
+	Type     uint8              `json:"type" bson:"type"`
+	Group    string             `json:"group" bson:"group"`
+	Size     uint64             `json:"size" bson:"size"`
+	Cover    string             `json:"cover" bson:"cover"`
+	Date     proxy.DurationInfo `json:"date" bson:"date"`
+	Assets   []string           `json:"assets" bson:"assets"`
+	Tags     []string           `json:"tags" bson:"tags"`
 }
 
 func CreateCollective(info *Collective) error {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"omo.msa.album/config"
+	"omo.msa.album/proxy"
 	"omo.msa.album/proxy/nosql"
 	"omo.msa.album/tool"
 	"time"
@@ -15,16 +16,18 @@ type CollAlbumInfo struct {
 	baseInfo
 	Remark string
 	Cover  string
-	Size   uint64 // 体积大小（字节）
+	Quote  string //
+	Size   uint64 //体积大小（字节）
 	Limit  uint16 //照片最大数量
 	Star   uint32 //点赞数
 	Style  uint32
-	Owner  string //组织，机构
+	Date   proxy.DurationInfo //日期
+	Owner  string             //组织，机构
 	Tags   []string
 	Assets []string
 }
 
-func (mine *cacheContext) CreateCollAlbum(name, remark, user, group string, tp uint8) (*CollAlbumInfo, error) {
+func (mine *cacheContext) CreateCollAlbum(name, remark, user, group string, tp uint8, begin, stop int64) (*CollAlbumInfo, error) {
 	db := new(nosql.Collective)
 	db.UID = primitive.NewObjectID()
 	db.ID = nosql.GetCollectiveNextID()
@@ -37,6 +40,7 @@ func (mine *cacheContext) CreateCollAlbum(name, remark, user, group string, tp u
 	db.Size = 0
 	db.Type = tp
 	db.Group = group
+	db.Date = proxy.DurationInfo{Start: begin, Stop: stop}
 	db.MaxCount = config.Schema.Album.Group.MaxCount
 	db.Assets = make([]string, 0, 1)
 	db.Status = uint8(AlbumPrivate)
@@ -154,6 +158,7 @@ func (mine *CollAlbumInfo) initInfo(db *nosql.Collective) {
 	mine.Status = db.Status
 	mine.Tags = db.Tags
 	mine.Type = db.Type
+	mine.Date = db.Date
 
 	mine.Assets = db.Assets
 	if mine.Assets == nil {

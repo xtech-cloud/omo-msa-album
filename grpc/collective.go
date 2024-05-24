@@ -27,6 +27,7 @@ func switchCollective(info *cache.CollAlbumInfo) *pb.CollectiveInfo {
 	tmp.Owner = info.Owner
 	tmp.Tags = info.Tags
 	tmp.Assets = info.Assets
+	tmp.Duration = &pb.DurationInfo{Begin: info.Date.Start, End: info.Date.Stop}
 	return tmp
 }
 
@@ -43,7 +44,7 @@ func (mine *CollectiveService) AddOne(ctx context.Context, in *pb.ReqCollectiveA
 		out.Status = outError(path, "the name is repeated", pbstatus.ResultStatus_Repeated)
 		return nil
 	}
-	info, err := cache.Context().CreateCollAlbum(in.Name, in.Remark, in.Operator, in.Owner, uint8(in.Type))
+	info, err := cache.Context().CreateCollAlbum(in.Name, in.Remark, in.Operator, in.Owner, uint8(in.Type), in.Duration.Begin, in.Duration.End)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
 		return nil
