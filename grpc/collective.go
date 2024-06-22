@@ -39,11 +39,11 @@ func (mine *CollectiveService) AddOne(ctx context.Context, in *pb.ReqCollectiveA
 		return nil
 	}
 
-	tmp, _ := cache.Context().GetCollAlbumByName(in.Owner, in.Name)
-	if tmp != nil {
-		out.Status = outError(path, "the name is repeated", pbstatus.ResultStatus_Repeated)
-		return nil
-	}
+	//tmp, _ := cache.Context().GetCollAlbumByName(in.Owner, in.Name)
+	//if tmp != nil {
+	//	out.Status = outError(path, "the name is repeated", pbstatus.ResultStatus_Repeated)
+	//	return nil
+	//}
 	info, err := cache.Context().CreateCollAlbum(in.Name, in.Remark, in.Operator, in.Owner, uint8(in.Type), in.Duration.Begin, in.Duration.End)
 	if err != nil {
 		out.Status = outError(path, err.Error(), pbstatus.ResultStatus_DBException)
