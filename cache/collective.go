@@ -241,14 +241,18 @@ func (mine *CollAlbumInfo) AppendAssets(assets []string, operator string) error 
 	if assets == nil || len(assets) < 1 {
 		return errors.New("the assets is nil when append")
 	}
-	all := make([]string, 0, len(mine.Assets)+len(assets))
-	all = append(all, mine.Assets...)
+	//all := make([]string, 0, len(mine.Assets)+len(assets))
+	//all = append(all, mine.Assets...)
 	for _, asset := range assets {
 		if !mine.hadAsset(asset) {
-			all = append(all, asset)
+			//all = append(all, asset)
+			er := nosql.AppendCollectiveAsset(mine.UID, asset)
+			if er != nil {
+				return er
+			}
 		}
 	}
-	return mine.UpdateAssets(all, operator)
+	return nil
 }
 
 func (mine *CollAlbumInfo) UpdateAssets(assets []string, operator string) error {

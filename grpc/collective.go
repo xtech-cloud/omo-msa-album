@@ -186,7 +186,10 @@ func (mine *CollectiveService) UpdateByFilter(ctx context.Context, in *pb.Reques
 		err = info.UpdateCover(in.Value, in.Operator)
 	} else if in.Field == "size" {
 		size := parseStringToInt64(in.Value)
-		err = info.UpdateSize(uint64(size), in.Operator)
+		if size > -1 {
+			err = info.UpdateSize(uint64(size), in.Operator)
+		}
+
 	} else if in.Field == "assets" {
 		err = info.UpdateAssets(in.Values, in.Operator)
 	} else {
