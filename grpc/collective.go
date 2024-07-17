@@ -189,9 +189,11 @@ func (mine *CollectiveService) UpdateByFilter(ctx context.Context, in *pb.Reques
 		if size > -1 {
 			err = info.UpdateSize(uint64(size), in.Operator)
 		}
-
 	} else if in.Field == "assets" {
 		err = info.UpdateAssets(in.Values, in.Operator)
+	} else if in.Field == "date" {
+		utc := parseStringToInt64(in.Value)
+		err = info.UpdateDate(utc, in.Operator)
 	} else {
 		err = errors.New("the field not defined")
 	}

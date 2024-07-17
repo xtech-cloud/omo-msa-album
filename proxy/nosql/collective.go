@@ -147,6 +147,18 @@ func UpdateCollectiveStatus(uid, operator string, st uint8) error {
 	return err
 }
 
+func UpdateCollectiveSize(uid, operator string, size uint64) error {
+	msg := bson.M{"size": size, "operator": operator, TimeUpdated: time.Now().Unix()}
+	_, err := updateOne(TableCollective, uid, msg)
+	return err
+}
+
+func UpdateCollectiveDate(uid, operator string, begin int64) error {
+	msg := bson.M{"date.start": begin, "operator": operator, TimeUpdated: time.Now().Unix()}
+	_, err := updateOne(TableCollective, uid, msg)
+	return err
+}
+
 func RemoveCollective(uid, operator string) error {
 	_, err := removeOne(TableCollective, uid, operator)
 	return err

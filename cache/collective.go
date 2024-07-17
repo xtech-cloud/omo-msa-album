@@ -196,7 +196,7 @@ func (mine *CollAlbumInfo) UpdateStatus(operator string, st uint8) error {
 
 func (mine *CollAlbumInfo) Remove(operator string) error {
 	if len(mine.Assets) > 0 {
-		return errors.New("the album is not empty")
+		return errors.New("the collection album is not empty")
 	}
 	return nosql.RemoveCollective(mine.UID, operator)
 }
@@ -209,16 +209,24 @@ func (mine *CollAlbumInfo) GetSize() uint64 {
 }
 
 func (mine *CollAlbumInfo) UpdateSize(size uint64, operator string) error {
-	err := nosql.UpdateAlbumSize(mine.UID, operator, size)
+	err := nosql.UpdateCollectiveSize(mine.UID, operator, size)
 	if err == nil {
 		mine.Size = size
 	}
 	return err
 }
 
+func (mine *CollAlbumInfo) UpdateDate(utc int64, operator string) error {
+	err := nosql.UpdateCollectiveDate(mine.UID, operator, utc)
+	if err == nil {
+		mine.Date.Start = utc
+	}
+	return err
+}
+
 func (mine *CollAlbumInfo) appendSize(size uint64) error {
 	sum := mine.Size + size
-	err := nosql.UpdateAlbumSize(mine.UID, "", sum)
+	err := nosql.UpdateCollectiveSize(mine.UID, "", sum)
 	if err == nil {
 		mine.Size = sum
 	}
@@ -230,7 +238,7 @@ func (mine *CollAlbumInfo) subtractSize(size uint64) error {
 	if d < 0 {
 		d = 0
 	}
-	err := nosql.UpdateAlbumSize(mine.UID, "", d)
+	err := nosql.UpdateCollectiveSize(mine.UID, "", d)
 	if err == nil {
 		mine.Size = d
 	}
